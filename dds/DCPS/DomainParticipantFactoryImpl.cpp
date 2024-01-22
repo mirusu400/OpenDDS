@@ -58,6 +58,9 @@ DomainParticipantFactoryImpl::create_participant(
                 ACE_TEXT("DomainParticipantFactoryImpl::create_participant, ")
                 ACE_TEXT("invalid qos.\n")));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantFactoryImpl::create_participant\t%d\n", DDS::DomainParticipant::_nil());
+    fclose(fp);
     return DDS::DomainParticipant::_nil();
   }
 
@@ -68,6 +71,9 @@ DomainParticipantFactoryImpl::create_participant(
                 ACE_TEXT("DomainParticipantFactoryImpl::create_participant, ")
                 ACE_TEXT("inconsistent qos.\n")));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantFactoryImpl::create_participant\t%d\n", DDS::DomainParticipant::_nil());
+    fclose(fp);
     return DDS::DomainParticipant::_nil();
   }
 
@@ -82,6 +88,9 @@ DomainParticipantFactoryImpl::create_participant(
                   ACE_TEXT("DomainParticipantFactoryImpl::create_participant, ")
                   ACE_TEXT("unable to enable DomainParticipant.\n")));
       }
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DomainParticipantFactoryImpl::create_participant\t%d\n", DDS::DomainParticipant::_nil());
+      fclose(fp);
       return DDS::DomainParticipant::_nil();
     }
   }
@@ -108,6 +117,9 @@ DomainParticipantFactoryImpl::create_participant(
                   ACE_TEXT("DomainParticipantFactoryImpl::create_participant, ")
                   ACE_TEXT("could not create new transport instance for participant.\n")));
       }
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DomainParticipantFactoryImpl::create_participant\t%d\n", DDS::DomainParticipant::_nil());
+      fclose(fp);
       return DDS::DomainParticipant::_nil();
     }
   }
@@ -118,7 +130,8 @@ DomainParticipantFactoryImpl::create_participant(
                    DDS::DomainParticipant::_nil());
 
   participants_[domainId].insert(dp);
-  return dp._retn();
+  DDS::DomainParticipant_ptr dp_ptr = dp->_retn();
+  return dp_ptr
 }
 
 DDS::ReturnCode_t
@@ -132,6 +145,9 @@ DomainParticipantFactoryImpl::delete_participant(
                 ACE_TEXT("DomainParticipantFactoryImpl::delete_participant, ")
                 ACE_TEXT("Nil participant.\n")));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantFactoryImpl::delete_participant\t%d\n", DDS::RETCODE_BAD_PARAMETER);
+    fclose(fp);
     return DDS::RETCODE_BAD_PARAMETER;
   }
 
@@ -144,6 +160,9 @@ DomainParticipantFactoryImpl::delete_participant(
         ACE_TEXT("DomainParticipantFactoryImpl::delete_participant: ")
         ACE_TEXT("failed to obtain the DomainParticipantImpl.\n")));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantFactoryImpl::delete_participant\t%d\n", DDS::RETCODE_ERROR);
+    fclose(fp);
     return DDS::RETCODE_ERROR;
   }
 
@@ -164,6 +183,9 @@ DomainParticipantFactoryImpl::delete_participant(
                 "the participant %C is not empty. %C leftover\n",
                 LogGuid(the_servant->get_id()).c_str(), leftover_entities.c_str()));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantFactoryImpl::delete_participant\t%d\n", DDS::RETCODE_PRECONDITION_NOT_MET);
+    fclose(fp);
     return DDS::RETCODE_PRECONDITION_NOT_MET;
   }
 
@@ -187,6 +209,9 @@ DomainParticipantFactoryImpl::delete_participant(
                    domain_id,
                    LogGuid(dp_id).c_str()));
       }
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DomainParticipantFactoryImpl::delete_participant\t%d\n", DDS::RETCODE_ERROR);
+      fclose(fp);
       return DDS::RETCODE_ERROR;
     }
 
@@ -198,6 +223,9 @@ DomainParticipantFactoryImpl::delete_participant(
                    ACE_TEXT(" %p.\n"),
                    ACE_TEXT("remove")));
       }
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DomainParticipantFactoryImpl::delete_participant\t%d\n", DDS::RETCODE_ERROR);
+      fclose(fp);
       return DDS::RETCODE_ERROR;
     }
 
@@ -209,6 +237,9 @@ DomainParticipantFactoryImpl::delete_participant(
                    ACE_TEXT(" %p.\n"),
                    ACE_TEXT("unbind")));
       }
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DomainParticipantFactoryImpl::delete_participant\t%d\n", DDS::RETCODE_ERROR);
+      fclose(fp);
       return DDS::RETCODE_ERROR;
     }
 
@@ -216,6 +247,9 @@ DomainParticipantFactoryImpl::delete_participant(
 
     const DDS::ReturnCode_t result = the_servant->delete_contained_entities();
     if (result != DDS::RETCODE_OK) {
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DomainParticipantFactoryImpl::delete_participant\t%d\n", result);
+      fclose(fp);
       return result;
     }
   }
@@ -228,9 +262,15 @@ DomainParticipantFactoryImpl::delete_participant(
                    ACE_TEXT("(%P|%t) ERROR: ")
                    ACE_TEXT("could not remove domain participant.\n")));
       }
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DomainParticipantFactoryImpl::delete_participant\t%d\n", DDS::RETCODE_ERROR);
+      fclose(fp);
       return DDS::RETCODE_ERROR;
     }
   }
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantFactoryImpl::delete_participant\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -253,6 +293,9 @@ DomainParticipantFactoryImpl::lookup_participant(
                  ACE_TEXT(" not found for domain %d.\n"),
                  domainId));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantFactoryImpl::lookup_participant\t%d\n", DDS::DomainParticipant::_nil());
+    fclose(fp);
 
     return DDS::DomainParticipant::_nil();
 
@@ -260,7 +303,12 @@ DomainParticipantFactoryImpl::lookup_participant(
     // No specification about which participant will return. We just return the first
     // object.
     // Note: We are not duplicate the object ref, so a delete call is not needed.
-    return DDS::DomainParticipant::_duplicate(entry->begin()->in());
+    // NOTE::: ptr but in stack?
+    DDS::DomainParticipant_ptr dp = DDS::DomainParticipant::_duplicate(entry->begin()->in());
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantFactoryImpl::lookup_participant\t%d\n", dp);
+    fclose(fp);
+    return dp;
   }
 }
 
@@ -289,6 +337,9 @@ DomainParticipantFactoryImpl::get_default_participant_qos(
 DDS::DomainParticipantFactory_ptr
 DomainParticipantFactoryImpl::get_instance()
 {
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantFactoryImpl::get_instance\t%d\n", TheParticipantFactory);
+  fclose(fp);
   return TheParticipantFactory;
 }
 

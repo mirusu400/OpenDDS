@@ -14,6 +14,9 @@ namespace DDS {
 
 CORBA::Boolean GuardCondition::get_trigger_value()
 {
+  // FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  // fprintf(fp, "GuardCondition::get_trigger_value\t%d\n", trigger_value_);
+  // fclose(fp);
   return trigger_value_;
 }
 
@@ -21,6 +24,9 @@ ReturnCode_t GuardCondition::set_trigger_value(CORBA::Boolean value)
 {
   trigger_value_ = value;
   signal_all();
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "GuardCondition::set_trigger_value\t%d\n", RETCODE_OK);
+  fclose(fp);
   return RETCODE_OK;
 }
 

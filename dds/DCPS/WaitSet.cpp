@@ -44,22 +44,34 @@ DDS::ReturnCode_t WaitSet::attach_condition(Condition_ptr cond)
                    RETCODE_OUT_OF_RESOURCES);
   ConditionImpl* ci = dynamic_cast<ConditionImpl*>(cond);
 
-  if (!ci) return RETCODE_BAD_PARAMETER;
-
+  if (!ci)  {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "WaitSet::attach_condition\t%d\n", DDS::RETCODE_BAD_PARAMETER);
+    fclose(fp); 
+    return RETCODE_BAD_PARAMETER;
+  }
   ReturnCode_t ret = ci->attach_to_ws(this);
 
   if (ret == RETCODE_OK) {
     attached_conditions_.insert(condv);
 
     if (condv->get_trigger_value()) signal(condv.in());
-
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "WaitSet::attach_condition\t%d\n", RETCODE_OK);
+    fclose(fp);
     return RETCODE_OK;
 
   } else if (ret == RETCODE_PRECONDITION_NOT_MET) {
     // RETCODE_PRECONDITION_NOT_MET means it was already in the set
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "WaitSet::attach_condition\t%d\n", RETCODE_PRECONDITION_NOT_MET);
+    fclose(fp);
     return RETCODE_OK;
   }
 
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "WaitSet::attach_condition\t%d\n", ret);
+  fclose(fp);
   return ret;
 }
 
@@ -67,7 +79,11 @@ ReturnCode_t WaitSet::detach_condition(Condition_ptr cond)
 {
   ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex, g, lock_,
                    RETCODE_OUT_OF_RESOURCES);
-  return detach_i(cond);
+  ReturnCode_t ret = detach_i(cond);
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "WaitSet::detach_condition\t%d\n", ret);
+  fclose(fp);
+  return ret;
 }
 
 ReturnCode_t WaitSet::detach_conditions(const ConditionSeq& conds)
@@ -106,6 +122,9 @@ ReturnCode_t WaitSet::get_conditions(ConditionSeq& conds)
   ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex, g, lock_,
                    RETCODE_OUT_OF_RESOURCES);
   copyInto(conds, attached_conditions_);
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "WaitSet::get_conditions\t%d\n", RETCODE_OK);
+  fclose(fp);
   return RETCODE_OK;
 }
 
@@ -115,6 +134,9 @@ ReturnCode_t WaitSet::wait(ConditionSeq& active_conditions,
   using namespace OpenDDS::DCPS;
 
   if (!non_negative_duration(timeout)) {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "WaitSet::wait\t%d\n", DDS::RETCODE_BAD_PARAMETER);
+    fclose(fp);
     return DDS::RETCODE_BAD_PARAMETER;
   }
 
@@ -128,6 +150,9 @@ ReturnCode_t WaitSet::wait(ConditionSeq& active_conditions,
                    RETCODE_OUT_OF_RESOURCES);
 
   if (waiting_) {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "WaitSet::wait\t%d\n", DDS::RETCODE_PRECONDITION_NOT_MET);
+    fclose(fp);
     return RETCODE_PRECONDITION_NOT_MET;
   }
 
@@ -154,9 +179,17 @@ ReturnCode_t WaitSet::wait(ConditionSeq& active_conditions,
 
   switch (status) {
   case CvStatus_NoTimeout:
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "WaitSet::wait\t%d\n", RETCODE_OK);
+    fclose(fp);
     return RETCODE_OK;
 
   case CvStatus_Timeout:
+    FILE *fp1 = fopen("/tmp/opendds-debug", "a+");
+
+    fprintf(fp1, "WaitSet::wait\t%d\n", RETCODE_TIMEOUT);
+    fclose(fp1);
+
     return RETCODE_TIMEOUT;
 
   case CvStatus_Error:
@@ -164,6 +197,9 @@ ReturnCode_t WaitSet::wait(ConditionSeq& active_conditions,
     if (DCPS_debug_level) {
       ACE_ERROR((LM_ERROR, "(%P|%t) ERROR: WaitSet::wait: wait_until failed\n"));
     }
+    FILE *fp2 = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp2, "WaitSet::wait\t%d\n", RETCODE_ERROR);
+    fclose(fp2);
     return RETCODE_ERROR;
   }
 }

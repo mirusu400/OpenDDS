@@ -40,6 +40,8 @@ DDS::ReturnCode_t
 EntityImpl::set_enabled()
 {
   enabled_ = true;
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "EntityImpl::set_enabled\t%d\n", DDS::RETCODE_OK);
 
   return DDS::RETCODE_OK;
 }
@@ -150,15 +152,26 @@ DDS::InstanceHandle_t EntityImpl::get_entity_instance_handle(const GUID_t& id,
   ACE_GUARD_RETURN(ACE_Thread_Mutex, g, lock_, DDS::HANDLE_NIL);
 
   if (instance_handle_ != DDS::HANDLE_NIL) {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "EntityImpl::get_entity_instance_handle\t%d\n", instance_handle_);
+    fclose(fp);
     return instance_handle_;
   }
 
   if (!participant) {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "EntityImpl::get_entity_instance_handle\t%d\n", DDS::HANDLE_NIL);
+    fclose(fp);
     return DDS::HANDLE_NIL;
   }
 
   participant_for_instance_handle_ = participant;
-  return instance_handle_ = participant->assign_handle(id);
+  // NOTE::: Return Stack-based address 
+  DDS::InstanceHandle_t id_handle = participant->lookup_handle(id);
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "EntityImpl::get_entity_instance_handle\t%d\n", id_handle);
+  fclose(fp);
+  return id_handle;
 }
 
 } // namespace DCPS

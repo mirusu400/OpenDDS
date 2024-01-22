@@ -157,8 +157,12 @@ DomainParticipantImpl::create_publisher(
 {
   DDS::PublisherQos pub_qos = qos;
 
-  if (! this->validate_publisher_qos(pub_qos))
+  if (! this->validate_publisher_qos(pub_qos)) {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::create_publisher\t%d\n", DDS::Publisher::_nil());
+    fclose(fp);
     return DDS::Publisher::_nil();
+  }
 
   // Although Publisher entities have GUIDs assigned (see pub_id_gen_),
   // these are not GUIDs from the RTPS spec and
@@ -196,10 +200,18 @@ DomainParticipantImpl::create_publisher(
                  ACE_TEXT("%p\n"),
                  ACE_TEXT("insert")));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::create_publisher\t%d\n", DDS::Publisher::_nil());
+    fclose(fp);
+
     return DDS::Publisher::_nil();
   }
 
-  return DDS::Publisher::_duplicate(pub_obj);
+  DDS::Publisher_ptr ptr = DDS::Publisher::_duplicate(pub_obj);
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantImpl::create_publisher\t%d\n", ptr);
+  fclose(fp);
+  return ptr;
 }
 
 DDS::ReturnCode_t
@@ -215,6 +227,9 @@ DomainParticipantImpl::delete_publisher(
       ACE_ERROR((LM_NOTICE, "(%P|%t) NOTICE: DomainParticipantImpl::delete_publisher: "
                  "Failed to obtain PublisherImpl\n"));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::delete_publisher\t%d\n", DDS::RETCODE_ERROR);
+    fclose(fp);
     return DDS::RETCODE_ERROR;
   }
 
@@ -275,6 +290,9 @@ DomainParticipantImpl::create_subscriber(
   DDS::SubscriberQos sub_qos = qos;
 
   if (! this->validate_subscriber_qos(sub_qos)) {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::create_subscriber\t%d\n", DDS::Subscriber::_nil());
+    fclose(fp);
     return DDS::Subscriber::_nil();
   }
 
@@ -309,10 +327,16 @@ DomainParticipantImpl::create_subscriber(
                  ACE_TEXT("%p\n"),
                  ACE_TEXT("insert")));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::create_subscriber\t%d\n", DDS::Subscriber::_nil());
+    fclose(fp);
     return DDS::Subscriber::_nil();
   }
-
-  return DDS::Subscriber::_duplicate(sub_obj);
+  DDS::Subscriber_ptr ptr = DDS::Subscriber::_duplicate(sub_obj);
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantImpl::create_subscriber\t%d\n", ptr);
+  fclose(fp);
+  return ptr;
 }
 
 DDS::ReturnCode_t
@@ -328,6 +352,9 @@ DomainParticipantImpl::delete_subscriber(
       ACE_ERROR((LM_NOTICE, "(%P|%t) NOTICE: DomainParticipantImpl::delete_subscriber: "
                  "Failed to obtain SubscriberImpl\n"));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::delete_subscriber\t%d\n", DDS::RETCODE_ERROR);
+    fclose(fp);
     return DDS::RETCODE_ERROR;
   }
 
@@ -341,6 +368,9 @@ DomainParticipantImpl::delete_subscriber(
         ACE_ERROR((LM_NOTICE, "(%P|%t) NOTICE: DomainParticipantImpl::delete_subscriber: "
                    "This subscriber doesn't belong to this participant\n"));
       }
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DomainParticipantImpl::delete_subscriber\t%d\n", DDS::RETCODE_PRECONDITION_NOT_MET);
+      fclose(fp);
       return DDS::RETCODE_PRECONDITION_NOT_MET;
     }
   }
@@ -352,6 +382,9 @@ DomainParticipantImpl::delete_subscriber(
                  "The subscriber is not empty. %C leftover\n",
                  leftover_entities.c_str()));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::delete_subscriber\t%d\n", DDS::RETCODE_PRECONDITION_NOT_MET);
+    fclose(fp);
     return DDS::RETCODE_PRECONDITION_NOT_MET;
   }
 
@@ -361,6 +394,9 @@ DomainParticipantImpl::delete_subscriber(
       ACE_ERROR((LM_NOTICE, "(%P|%t) NOTICE: DomainParticipantImpl::delete_subscriber: "
                  "Failed to delete contained entities: %C\n", retcode_to_string(ret)));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::delete_subscriber\t%d\n", ret);
+    fclose(fp);
     return ret;
   }
 
@@ -372,9 +408,15 @@ DomainParticipantImpl::delete_subscriber(
         ACE_ERROR((LM_NOTICE, "(%P|%t) NOTICE: DomainParticipantImpl::delete_subscriber: "
           "subscriber not found\n"));
       }
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DomainParticipantImpl::delete_subscriber\t%d\n", DDS::RETCODE_ERROR);
+      fclose(fp);
       return DDS::RETCODE_ERROR;
     }
   }
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantImpl::delete_subscriber\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
 
   return DDS::RETCODE_OK;
 }
@@ -382,7 +424,13 @@ DomainParticipantImpl::delete_subscriber(
 DDS::Subscriber_ptr
 DomainParticipantImpl::get_builtin_subscriber()
 {
-  return bit_subscriber_->get();
+  // NOTE::: Ptr but stack???
+  DDS::Subscriber_ptr builtin_subscriber = bit_subscriber_->get();
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantImpl::get_builtin_subscriber\t%d\n", builtin_subscriber);
+  fclose(fp);
+
+  return builtin_subscriber;
 }
 
 RcHandle<BitSubscriber>
@@ -399,13 +447,19 @@ DomainParticipantImpl::create_topic(
   DDS::TopicListener_ptr a_listener,
   DDS::StatusMask mask)
 {
-  return create_topic_i(topic_name,
-                        type_name,
-                        qos,
-                        a_listener,
-                        mask,
-                        0);
+  // NOTE::: Ptr but stack???
+  DDS::Topic_ptr ptr = create_topic_i(topic_name,
+                                      type_name,
+                                      qos,
+                                      a_listener,
+                                      mask,
+                                      0);
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantImpl::create_topic\t%d\n", ptr);
+  fclose(fp);
+  return ptr;
 }
+
 
 DDS::Topic_ptr
 DomainParticipantImpl::create_typeless_topic(
@@ -595,7 +649,11 @@ DDS::ReturnCode_t
 DomainParticipantImpl::delete_topic(
   DDS::Topic_ptr a_topic)
 {
-  return delete_topic_i(a_topic, false);
+  DDS::ReturnCode_t ret = delete_topic_i(a_topic, true);
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantImpl::delete_topic\t%d\n", ret);
+  fclose(fp);
+  return ret;
 }
 
 DDS::ReturnCode_t DomainParticipantImpl::delete_topic_i(
@@ -742,7 +800,9 @@ DomainParticipantImpl::find_topic(
                        ACE_TEXT("can't create a Topic: type_name \"%C\" ")
                        ACE_TEXT("is not registered.\n"), type_name.in()));
         }
-
+        FILE *fp = fopen("/tmp/opendds-debug", "a+");
+        fprintf(fp, "DomainParticipantImpl::find_topic\t%d\n", DDS::Topic::_nil());
+        fclose(fp);
         return DDS::Topic::_nil();
       }
 
@@ -752,6 +812,9 @@ DomainParticipantImpl::find_topic(
                                                   DDS::TopicListener::_nil(),
                                                   OpenDDS::DCPS::DEFAULT_STATUS_MASK,
                                                   type_support);
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DomainParticipantImpl::find_topic\t%d\n", new_topic);
+      fclose(fp);
       return new_topic;
 
     } else if (status == INTERNAL_ERROR) {
@@ -760,6 +823,9 @@ DomainParticipantImpl::find_topic(
                    ACE_TEXT("(%P|%t) ERROR: DomainParticipantImpl::find_topic - ")
                    ACE_TEXT("topic not found, discovery returned INTERNAL_ERROR!\n")));
       }
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DomainParticipantImpl::find_topic\t%d\n", DDS::Topic::_nil());
+      fclose(fp);
       return DDS::Topic::_nil();
     } else if (now < timeout_at) {
       const TimeDuration remaining = timeout_at - now;
@@ -779,6 +845,9 @@ DomainParticipantImpl::find_topic(
                ACE_TEXT("(%P|%t) DomainParticipantImpl::find_topic, ")
                ACE_TEXT("timed out.\n")));
   }
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantImpl::find_topic\t%d\n", DDS::Topic::_nil());
+  fclose(fp);
 
   return DDS::Topic::_nil();
 }
@@ -797,13 +866,25 @@ DomainParticipantImpl::lookup_topicdescription(const char* name)
 #if !defined(OPENDDS_NO_CONTENT_FILTERED_TOPIC) || !defined(OPENDDS_NO_MULTI_TOPIC)
     TopicDescriptionMap::iterator iter = topic_descrs_.find(name);
     if (iter != topic_descrs_.end()) {
-      return DDS::TopicDescription::_duplicate(iter->second);
+      // NOTE::: ptr but stack???
+      DDS::TopicDescription_ptr td = DDS::TopicDescription::_duplicate(iter->second);
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DomainParticipantImpl::lookup_topicdescription\t%d\n", td);
+      fclose(fp);
+      return td
     }
 #endif
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::lookup_topicdescription\t%d\n", DDS::Topic::_nil());
+    fclose(fp);
     return DDS::TopicDescription::_nil();
 
   } else {
-    return DDS::TopicDescription::_duplicate(entry->pair_.obj_.in());
+    DDS::TopicDescription_ptr td = DDS::TopicDescription::_duplicate(entry->pair_.obj_.in());
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::lookup_topicdescription\t%d\n", td);
+    fclose(fp);
+    return td;
   }
 }
 
@@ -823,6 +904,9 @@ DomainParticipantImpl::create_contentfilteredtopic(
                  ACE_TEXT("can't create a content-filtered topic due to null related ")
                  ACE_TEXT("topic.\n")));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::create_contentfilteredtopic\t%d\n", 0);
+    fclose(fp);
     return 0;
   }
 
@@ -835,6 +919,9 @@ DomainParticipantImpl::create_contentfilteredtopic(
                  ACE_TEXT("can't create a content-filtered topic due to name \"%C\" ")
                  ACE_TEXT("already in use by a Topic.\n"), name));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::create_contentfilteredtopic\t%d\n", 0);
+    fclose(fp);
     return 0;
   }
 
@@ -886,6 +973,11 @@ DDS::ReturnCode_t DomainParticipantImpl::delete_contentfilteredtopic(
                  ACE_TEXT("can't delete a content-filtered topic \"%C\" ")
                  ACE_TEXT("because it is not in the set.\n"), name.in ()));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::delete_contentfilteredtopic\t%d\n", DDS::RETCODE_PRECONDITION_NOT_MET);
+    fclose(fp);
+
+
     return DDS::RETCODE_PRECONDITION_NOT_MET;
   }
 
@@ -898,6 +990,9 @@ DDS::ReturnCode_t DomainParticipantImpl::delete_contentfilteredtopic(
                  ACE_TEXT("can't delete a content-filtered topic \"%C\" ")
                  ACE_TEXT("failed to obtain TopicDescriptionImpl\n"), name.in()));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::delete_contentfilteredtopic\t%d\n", DDS::RETCODE_ERROR);
+    fclose(fp);
     return DDS::RETCODE_ERROR;
   }
 
@@ -908,9 +1003,15 @@ DDS::ReturnCode_t DomainParticipantImpl::delete_contentfilteredtopic(
                  ACE_TEXT("can't delete a content-filtered topic \"%C\" ")
                  ACE_TEXT("because it is used by a datareader\n"), name.in ()));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::delete_contentfilteredtopic\t%d\n", DDS::RETCODE_PRECONDITION_NOT_MET);
+    fclose(fp);
     return DDS::RETCODE_PRECONDITION_NOT_MET;
   }
   topic_descrs_.erase(iter);
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantImpl::delete_contentfilteredtopic\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -932,6 +1033,9 @@ DDS::MultiTopic_ptr DomainParticipantImpl::create_multitopic(
                  ACE_TEXT("can't create a multi topic due to name \"%C\" ")
                  ACE_TEXT("already in use by a Topic.\n"), name));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::create_multitopic\t%d\n", 0);
+    fclose(fp);
     return 0;
   }
 
@@ -942,6 +1046,9 @@ DDS::MultiTopic_ptr DomainParticipantImpl::create_multitopic(
                  ACE_TEXT("can't create a multi topic due to name \"%C\" ")
                  ACE_TEXT("already in use by a TopicDescription.\n"), name));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::create_multitopic\t%d\n", 0);
+    fclose(fp);
     return 0;
   }
 
@@ -956,11 +1063,19 @@ DDS::MultiTopic_ptr DomainParticipantImpl::create_multitopic(
                  ACE_TEXT("can't create a multi topic due to runtime error: ")
                  ACE_TEXT("%C.\n"), e.what()));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::create_multitopic\t%d\n", 0);
+    fclose(fp);
     return 0;
   }
   DDS::TopicDescription_var td = DDS::TopicDescription::_duplicate(mt);
   topic_descrs_[name] = td;
-  return mt._retn();
+  // NOTE::: ptr but stack???
+  DDS::MultiTopic_ptr ptr = mt._retn();
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantImpl::create_multitopic\t%d\n", ptr);
+  fclose(fp);
+  return ptr;
 }
 
 DDS::ReturnCode_t DomainParticipantImpl::delete_multitopic(
@@ -978,6 +1093,9 @@ DDS::ReturnCode_t DomainParticipantImpl::delete_multitopic(
                  ACE_TEXT("can't delete a multitopic \"%C\" ")
                  ACE_TEXT("because it is not in the set.\n"), mt_name.in ()));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::delete_multitopic\t%d\n", DDS::RETCODE_PRECONDITION_NOT_MET);
+    fclose(fp);
     return DDS::RETCODE_PRECONDITION_NOT_MET;
   }
 
@@ -991,6 +1109,9 @@ DDS::ReturnCode_t DomainParticipantImpl::delete_multitopic(
                  ACE_TEXT("failed to obtain TopicDescriptionImpl.\n"),
                  mt_name.in()));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::delete_multitopic\t%d\n", DDS::RETCODE_ERROR);
+    fclose(fp);
     return DDS::RETCODE_ERROR;
   }
 
@@ -1001,9 +1122,15 @@ DDS::ReturnCode_t DomainParticipantImpl::delete_multitopic(
                  ACE_TEXT("can't delete a multitopic topic \"%C\" ")
                  ACE_TEXT("because it is used by a datareader.\n"), mt_name.in ()));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::delete_multitopic\t%d\n", DDS::RETCODE_PRECONDITION_NOT_MET);
+    fclose(fp);
     return DDS::RETCODE_PRECONDITION_NOT_MET;
   }
   topic_descrs_.erase(iter);
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantImpl::delete_multitopic\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -1057,9 +1184,15 @@ DomainParticipantImpl::delete_contained_entities()
     set_deleted(true);
 
     if (!prepare_to_delete_datawriters()) {
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DomainParticipantImpl::delete_contained_entities\t%d\n", DDS::RETCODE_ERROR);
+      fclose(fp);
       return DDS::RETCODE_ERROR;
     }
     if (!set_wait_pending_deadline(TheServiceParticipant->new_pending_timeout_deadline())) {
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DomainParticipantImpl::delete_contained_entities\t%d\n", DDS::RETCODE_ERROR);
+      fclose(fp);
       return DDS::RETCODE_ERROR;
     }
   }
@@ -1093,6 +1226,9 @@ DomainParticipantImpl::delete_contained_entities()
 
   // the participant can now start creating new contained entities
   set_deleted(false);
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantImpl::delete_contained_entities\t%d\n", shutdown_result_);
+  fclose(fp);
   return shutdown_result_;
 }
 
@@ -1109,8 +1245,12 @@ DomainParticipantImpl::contains_entity(DDS::InstanceHandle_t a_handle)
 
     for (TopicMap::iterator it(topics_.begin());
          it != topics_.end(); ++it) {
-      if (a_handle == it->second.pair_.svt_->get_instance_handle())
+      if (a_handle == it->second.pair_.svt_->get_instance_handle()) {
+        FILE *fp = fopen("/tmp/opendds-debug", "a+");
+        fprintf(fp, "DomainParticipantImpl::contains_entity\t%d\n", true);
+        fclose(fp);
         return true;
+      }
     }
   }
 
@@ -1122,8 +1262,12 @@ DomainParticipantImpl::contains_entity(DDS::InstanceHandle_t a_handle)
 
     for (SubscriberSet::iterator it(subscribers_.begin());
          it != subscribers_.end(); ++it) {
-      if (a_handle == it->svt_->get_instance_handle())
+      if (a_handle == it->svt_->get_instance_handle()) {
+        FILE *fp = fopen("/tmp/opendds-debug", "a+");
+        fprintf(fp, "DomainParticipantImpl::contains_entity\t%d\n", true);
+        fclose(fp);
         return true;
+      }
     }
   }
 
@@ -1135,8 +1279,12 @@ DomainParticipantImpl::contains_entity(DDS::InstanceHandle_t a_handle)
 
     for (PublisherSet::iterator it(publishers_.begin());
          it != publishers_.end(); ++it) {
-      if (a_handle == it->svt_->get_instance_handle())
+      if (a_handle == it->svt_->get_instance_handle()) {
+        FILE *fp = fopen("/tmp/opendds-debug", "a+");
+        fprintf(fp, "DomainParticipantImpl::contains_entity\t%d\n", true);
+        fclose(fp);
         return true;
+      }
     }
   }
 
@@ -1144,16 +1292,26 @@ DomainParticipantImpl::contains_entity(DDS::InstanceHandle_t a_handle)
   /// DataReader and DataWriter instances respectively.
   for (SubscriberSet::iterator it(subscribers_.begin());
        it != subscribers_.end(); ++it) {
-    if (it->svt_->contains_reader(a_handle))
+    if (it->svt_->contains_reader(a_handle)) {
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DomainParticipantImpl::contains_entity\t%d\n", true);
+      fclose(fp);
       return true;
+    }
   }
 
   for (PublisherSet::iterator it(publishers_.begin());
        it != publishers_.end(); ++it) {
-    if (it->svt_->contains_writer(a_handle))
+    if (it->svt_->contains_writer(a_handle)) {
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DomainParticipantImpl::contains_entity\t%d\n", true);
+      fclose(fp);
       return true;
+    }
   }
-
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantImpl::contains_entity\t%d\n", false);
+  fclose(fp);
   return false;
 }
 
@@ -1233,6 +1391,9 @@ DomainParticipantImpl::ignore_participant(
                  ACE_TEXT("(%P|%t) ERROR: DomainParticipantImpl::ignore_participant, ")
                  ACE_TEXT("Entity is not enabled.\n")));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::ignore_participant\t%d\n", DDS::RETCODE_NOT_ENABLED);
+    fclose(fp);
     return DDS::RETCODE_NOT_ENABLED;
   }
 
@@ -1243,6 +1404,9 @@ DomainParticipantImpl::ignore_participant(
     this->ignored_participants_[ ignoreId] = handle;
   }
   else {// ignore same participant again, just return ok.
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::ignore_participant\t%d\n", DDS::RETCODE_OK);
+    fclose(fp);
     return DDS::RETCODE_OK;
   }
 
@@ -1263,6 +1427,9 @@ DomainParticipantImpl::ignore_participant(
                  ACE_TEXT("(%P|%t) ERROR: DomainParticipantImpl::ignore_participant, ")
                  ACE_TEXT("Could not ignore domain participant.\n")));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::ignore_participant\t%d\n", DDS::RETCODE_ERROR);
+    fclose(fp);
     return DDS::RETCODE_ERROR;
   }
 
@@ -1273,10 +1440,15 @@ DomainParticipantImpl::ignore_participant(
                ACE_TEXT("%C repo call returned.\n"),
                LogGuid(dp_id_).c_str()));
   }
-
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantImpl::ignore_participant\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 #else
   ACE_UNUSED_ARG(handle);
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantImpl::ignore_participant\t%d\n", DDS::RETCODE_UNSUPPORTED);
+  fclose(fp);
   return DDS::RETCODE_UNSUPPORTED;
 #endif // !defined (DDS_HAS_MINIMUM_BIT)
 }
@@ -1292,6 +1464,9 @@ DomainParticipantImpl::ignore_topic(
                  ACE_TEXT("(%P|%t) ERROR: DomainParticipantImpl::ignore_topic, ")
                  ACE_TEXT(" Entity is not enabled.\n")));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::ignore_topic\t%d\n", DDS::RETCODE_NOT_ENABLED);
+    fclose(fp);
     return DDS::RETCODE_NOT_ENABLED;
   }
 
@@ -1302,6 +1477,9 @@ DomainParticipantImpl::ignore_topic(
     this->ignored_topics_[ ignoreId] = handle;
   }
   else { // ignore same topic again, just return ok.
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantImpl::ignore_topic\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
     return DDS::RETCODE_OK;
   }
 
@@ -1323,10 +1501,15 @@ DomainParticipantImpl::ignore_topic(
                  ACE_TEXT(" Could not ignore topic.\n")));
     }
   }
-
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantImpl::ignore_topic\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 #else
   ACE_UNUSED_ARG(handle);
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantImpl::ignore_topic\t%d\n", DDS::RETCODE_UNSUPPORTED);
+  fclose(fp);
   return DDS::RETCODE_UNSUPPORTED;
 #endif // !defined (DDS_HAS_MINIMUM_BIT)
 }
@@ -1342,6 +1525,9 @@ DomainParticipantImpl::ignore_publication(
                  ACE_TEXT("(%P|%t) ERROR: DomainParticipantImpl::ignore_publication, ")
                  ACE_TEXT(" Entity is not enabled.\n")));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::ignore_publication\t%d\n", DDS::RETCODE_NOT_ENABLED);
+    fclose(fp);
     return DDS::RETCODE_NOT_ENABLED;
   }
 
@@ -1363,12 +1549,21 @@ DomainParticipantImpl::ignore_publication(
                  ACE_TEXT("(%P|%t) ERROR: DomainParticipantImpl::ignore_publication, ")
                  ACE_TEXT(" could not ignore publication in discovery.\n")));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::ignore_publication\t%d\n", DDS::RETCODE_ERROR);
+    fclose(fp);
     return DDS::RETCODE_ERROR;
   }
 
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantImpl::ignore_publication\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 #else
   ACE_UNUSED_ARG(handle);
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantImpl::ignore_publication\t%d\n", DDS::RETCODE_UNSUPPORTED);
+  fclose(fp);
   return DDS::RETCODE_UNSUPPORTED;
 #endif // !defined (DDS_HAS_MINIMUM_BIT)
 }
@@ -1384,6 +1579,9 @@ DomainParticipantImpl::ignore_subscription(
                  ACE_TEXT("(%P|%t) ERROR: DomainParticipantImpl::ignore_subscription, ")
                  ACE_TEXT(" Entity is not enabled.\n")));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::ignore_subscription\t%d\n", DDS::RETCODE_NOT_ENABLED);
+    fclose(fp);
     return DDS::RETCODE_NOT_ENABLED;
   }
 
@@ -1405,12 +1603,20 @@ DomainParticipantImpl::ignore_subscription(
                  ACE_TEXT("(%P|%t) ERROR: DomainParticipantImpl::ignore_subscription, ")
                  ACE_TEXT(" could not ignore subscription in discovery.\n")));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::ignore_subscription\t%d\n", DDS::RETCODE_ERROR);
+    fclose(fp);
     return DDS::RETCODE_ERROR;
   }
-
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantImpl::ignore_subscription\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 #else
   ACE_UNUSED_ARG(handle);
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantImpl::ignore_subscription\t%d\n", DDS::RETCODE_UNSUPPORTED);
+  fclose(fp);
   return DDS::RETCODE_UNSUPPORTED;
 #endif // !defined (DDS_HAS_MINIMUM_BIT)
 }
@@ -1418,6 +1624,9 @@ DomainParticipantImpl::ignore_subscription(
 DDS::DomainId_t
 DomainParticipantImpl::get_domain_id()
 {
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantImpl::get_domain_id\t%d\n", domain_id_);
+  fclose(fp);
   return domain_id_;
 }
 
@@ -1443,7 +1652,9 @@ DomainParticipantImpl::assert_liveliness()
   }
 
   last_liveliness_activity_.set_to_now();
-
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantImpl::assert_liveliness\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -1453,9 +1664,15 @@ DomainParticipantImpl::set_default_publisher_qos(
 {
   if (Qos_Helper::valid(qos) && Qos_Helper::consistent(qos)) {
     default_publisher_qos_ = qos;
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::set_default_publisher_qos\t%d\n", DDS::RETCODE_OK);
+    fclose(fp);
     return DDS::RETCODE_OK;
 
   } else {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::set_default_publisher_qos\t%d\n", DDS::RETCODE_INCONSISTENT_POLICY);
+    fclose(fp);
     return DDS::RETCODE_INCONSISTENT_POLICY;
   }
 }
@@ -1465,6 +1682,9 @@ DomainParticipantImpl::get_default_publisher_qos(
   DDS::PublisherQos & qos)
 {
   qos = default_publisher_qos_;
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantImpl::get_default_publisher_qos\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -1474,9 +1694,15 @@ DomainParticipantImpl::set_default_subscriber_qos(
 {
   if (Qos_Helper::valid(qos) && Qos_Helper::consistent(qos)) {
     default_subscriber_qos_ = qos;
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::set_default_subscriber_qos\t%d\n", DDS::RETCODE_OK);
+    fclose(fp);
     return DDS::RETCODE_OK;
 
   } else {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::set_default_subscriber_qos\t%d\n", DDS::RETCODE_INCONSISTENT_POLICY);
+    fclose(fp);
     return DDS::RETCODE_INCONSISTENT_POLICY;
   }
 }
@@ -1486,6 +1712,9 @@ DomainParticipantImpl::get_default_subscriber_qos(
   DDS::SubscriberQos & qos)
 {
   qos = default_subscriber_qos_;
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantImpl::get_default_subscriber_qos\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -1495,9 +1724,15 @@ DomainParticipantImpl::set_default_topic_qos(
 {
   if (Qos_Helper::valid(qos) && Qos_Helper::consistent(qos)) {
     default_topic_qos_ = qos;
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::set_default_topic_qos\t%d\n", DDS::RETCODE_OK);
+    fclose(fp);
     return DDS::RETCODE_OK;
 
   } else {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::set_default_topic_qos\t%d\n", DDS::RETCODE_INCONSISTENT_POLICY);
+    fclose(fp);
     return DDS::RETCODE_INCONSISTENT_POLICY;
   }
 }
@@ -1507,6 +1742,9 @@ DomainParticipantImpl::get_default_topic_qos(
   DDS::TopicQos & qos)
 {
   qos = default_topic_qos_;
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantImpl::get_default_topic_qos\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -1514,6 +1752,9 @@ DDS::ReturnCode_t
 DomainParticipantImpl::get_current_time(DDS::Time_t& current_time)
 {
   current_time = SystemTimePoint::now().to_dds_time();
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantImpl::get_current_time\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -1537,7 +1778,9 @@ DomainParticipantImpl::get_discovered_participants(DDS::InstanceHandleSeq& parti
       push_back(participant_handles, iter->second.first);
     }
   }
-
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantImpl::get_discovered_participants\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -1560,11 +1803,18 @@ DomainParticipantImpl::get_discovered_participant_data(DDS::ParticipantBuiltinTo
       }
     }
 
-    if (!found)
+    if (!found) {
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DomainParticipantImpl::get_discovered_participant_data\t%d\n", DDS::RETCODE_PRECONDITION_NOT_MET);
+      fclose(fp);
       return DDS::RETCODE_PRECONDITION_NOT_MET;
+    }
   }
-
-  return bit_subscriber_->get_discovered_participant_data(participant_data, participant_handle);
+  DDS::ReturnCode_t ret = bit_subscriber_->get_discovered_participant_data(participant_data, participant_handle);
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantImpl::get_discovered_participant_data\t%d\n", ret);
+  fclose(fp);
+  return ret;
 }
 
 DDS::ReturnCode_t

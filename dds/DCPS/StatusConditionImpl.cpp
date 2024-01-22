@@ -32,6 +32,9 @@ CORBA::Boolean StatusConditionImpl::get_trigger_value()
 DDS::StatusMask StatusConditionImpl::get_enabled_statuses()
 {
   ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex, g, lock_, 0);
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "StatusConditionImpl::get_enabled_statuses\t%d\n", mask_);
+  fclose(fp);
   return mask_;
 }
 
@@ -44,12 +47,20 @@ StatusConditionImpl::set_enabled_statuses(DDS::StatusMask mask)
     mask_ = mask;
   }
   signal_all();
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "StatusConditionImpl::set_enabled_statuses\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
 DDS::Entity_ptr StatusConditionImpl::get_entity()
 {
-  return DDS::Entity::_duplicate(parent_);
+  // NOTE::: Return Stack-based object reference?
+  DDS::Entity_ptr entity = DDS::Entity::_duplicate(parent_);
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "StatusConditionImpl::get_entity\t%d\n", entity);
+  fclose(fp);
+  return entity;
 }
 
 } // namespace DCPS
