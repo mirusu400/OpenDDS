@@ -130,8 +130,8 @@ DomainParticipantFactoryImpl::create_participant(
                    DDS::DomainParticipant::_nil());
 
   participants_[domainId].insert(dp);
-  DDS::DomainParticipant_ptr dp_ptr = dp->_retn();
-  return dp_ptr
+  DDS::DomainParticipant_ptr dp_ptr = dp._retn();
+  return dp_ptr;
 }
 
 DDS::ReturnCode_t
@@ -319,9 +319,15 @@ DomainParticipantFactoryImpl::set_default_participant_qos(
   if (Qos_Helper::valid(qos)
       && Qos_Helper::consistent(qos)) {
     default_participant_qos_ = qos;
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantFactoryImpl::set_default_participant_qos\t%d\n", DDS::RETCODE_OK);
+    fclose(fp);
     return DDS::RETCODE_OK;
 
   } else {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantFactoryImpl::set_default_participant_qos\t%d\n", DDS::RETCODE_INCONSISTENT_POLICY);
+    fclose(fp);
     return DDS::RETCODE_INCONSISTENT_POLICY;
   }
 }
@@ -331,6 +337,9 @@ DomainParticipantFactoryImpl::get_default_participant_qos(
   DDS::DomainParticipantQos & qos)
 {
   qos = default_participant_qos_;
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantFactoryImpl::get_default_participant_qos\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -350,10 +359,15 @@ DomainParticipantFactoryImpl::set_qos(
   if (Qos_Helper::valid(qos) && Qos_Helper::consistent(qos)) {
     if (!(qos_ == qos) && Qos_Helper::changeable(qos_, qos))
       qos_ = qos;
-
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantFactoryImpl::set_qos\t%d\n", DDS::RETCODE_OK);
+    fclose(fp);
     return DDS::RETCODE_OK;
 
   } else {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantFactoryImpl::set_qos\t%d\n", DDS::RETCODE_INCONSISTENT_POLICY);
+    fclose(fp);
     return DDS::RETCODE_INCONSISTENT_POLICY;
   }
 }
@@ -363,6 +377,9 @@ DomainParticipantFactoryImpl::get_qos(
   DDS::DomainParticipantFactoryQos & qos)
 {
   qos = this->qos_;
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantFactoryImpl::get_qos\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
