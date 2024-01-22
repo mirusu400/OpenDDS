@@ -48,6 +48,9 @@ ContentFilteredTopicImpl::get_expression_parameters(DDS::StringSeq& params)
   ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex, guard, lock_,
     DDS::RETCODE_OUT_OF_RESOURCES);
   params = expression_parameters_;
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "ContentFilteredTopicImpl::get_expression_parameters\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -76,6 +79,9 @@ ContentFilteredTopicImpl::set_expression_parameters(const DDS::StringSeq& p)
           ACE_TEXT("passed incorrect set of filter parameters, expected %d received %d\n"),
           filter_eval_.number_parameters(), len));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "ContentFilteredTopicImpl::set_expression_parameters\t%d\n", DDS::RETCODE_ERROR);
+    fclose(fp);
     return DDS::RETCODE_ERROR;
   }
 
@@ -88,6 +94,9 @@ ContentFilteredTopicImpl::set_expression_parameters(const DDS::StringSeq& p)
 #endif
     if (std::equal(&p_buf[0], &p_buf[len], &e_buf[0], string_equal)) {
       // no change, bail out now to avoid remote InfoRepo calls
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "ContentFilteredTopicImpl::set_expression_parameters\t%d\n", DDS::RETCODE_OK);
+      fclose(fp);
       return DDS::RETCODE_OK;
     }
 #ifdef _MSC_VER
@@ -110,7 +119,9 @@ ContentFilteredTopicImpl::set_expression_parameters(const DDS::StringSeq& p)
 
   using namespace std;
   swap(readers_, readers_still_alive);
-
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "ContentFilteredTopicImpl::set_expression_parameters\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 

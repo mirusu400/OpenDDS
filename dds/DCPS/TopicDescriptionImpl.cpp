@@ -35,19 +35,30 @@ TopicDescriptionImpl::~TopicDescriptionImpl()
 char *
 TopicDescriptionImpl::get_type_name()
 {
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "TopicDescriptionImpl::get_type_name\t%s\n", CORBA::string_dup(type_name_.c_str()));
+  fclose(fp);
+
   return CORBA::string_dup(type_name_.c_str());
 }
 
 char *
 TopicDescriptionImpl::get_name()
 {
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "TopicDescriptionImpl::get_name\t%s\n", CORBA::string_dup(topic_name_.c_str()));
+  fclose(fp);
   return CORBA::string_dup(topic_name_.c_str());
 }
 
 DDS::DomainParticipant_ptr
 TopicDescriptionImpl::get_participant()
 {
-  return DDS::DomainParticipant::_duplicate(participant_);
+  DDS::DomainParticipant_ptr participant = DDS::DomainParticipant::_duplicate(participant_);
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "TopicDescriptionImpl::get_participant\t%d\n", participant);
+  fclose(fp);
+  return participant;
 }
 
 OpenDDS::DCPS::TypeSupport_ptr

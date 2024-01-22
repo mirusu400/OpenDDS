@@ -120,6 +120,9 @@ TopicImpl::get_inconsistent_topic_status(DDS::InconsistentTopicStatus& a_status)
   set_status_changed_flag(DDS::INCONSISTENT_TOPIC_STATUS, false);
   a_status = inconsistent_topic_status_;
   inconsistent_topic_status_.total_count_change = 0;
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "TopicImpl::get_inconsistent_topic_status\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 

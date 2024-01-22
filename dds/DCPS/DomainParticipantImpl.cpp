@@ -871,7 +871,7 @@ DomainParticipantImpl::lookup_topicdescription(const char* name)
       FILE *fp = fopen("/tmp/opendds-debug", "a+");
       fprintf(fp, "DomainParticipantImpl::lookup_topicdescription\t%d\n", td);
       fclose(fp);
-      return td
+      return td;
     }
 #endif
     FILE *fp = fopen("/tmp/opendds-debug", "a+");

@@ -27,7 +27,11 @@ TypeSupportImpl::register_type(DDS::DomainParticipant_ptr participant,
 {
   const char* const type =
     (!type_name || !type_name[0]) ? name() : type_name;
-  return Registered_Data_Types->register_type(participant, type, this);
+  DDS::ReturnCode_t ret = Registered_Data_Types->register_type(participant, type, this);
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "TypeSupportImpl::register_type\t%d\n", ret);
+  fclose(fp);
+  return ret;
 }
 
 DDS::ReturnCode_t
@@ -45,7 +49,11 @@ char*
 TypeSupportImpl::get_type_name()
 {
   CORBA::String_var type = name();
-  return type._retn();
+  char* retval = type._retn();
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "TypeSupportImpl::get_type_name\t%s\n", retval);
+  fclose(fp);
+  return retval;
 }
 
 namespace {

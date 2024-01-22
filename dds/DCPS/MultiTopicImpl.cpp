@@ -82,6 +82,9 @@ MultiTopicImpl::get_expression_parameters(DDS::StringSeq& params)
   ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex, guard, lock_,
     DDS::RETCODE_OUT_OF_RESOURCES);
   params = expression_parameters_;
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "MultiTopicImpl::get_expression_parameters\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -91,6 +94,9 @@ MultiTopicImpl::set_expression_parameters(const DDS::StringSeq& p)
   ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex, guard, lock_,
     DDS::RETCODE_OUT_OF_RESOURCES);
   expression_parameters_ = p;
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "MultiTopicImpl::set_expression_parameters\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
