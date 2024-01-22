@@ -53,8 +53,13 @@ EntityImpl::is_enabled() const
 DDS::StatusCondition_ptr
 EntityImpl::get_statuscondition()
 {
+
   ACE_GUARD_RETURN(ACE_Thread_Mutex, g, lock_, 0);
-  return DDS::StatusCondition::_duplicate(status_condition_);
+  DDS::StatusCondition_ptr sc = DDS::StatusCondition::_duplicate(status_condition_);
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "EntityImpl::get_statuscondition\t%p\n", sc);
+  fclose(fp);
+  return sc;
 }
 
 DDS::StatusMask
