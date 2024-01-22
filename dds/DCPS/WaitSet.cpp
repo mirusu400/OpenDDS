@@ -179,28 +179,32 @@ ReturnCode_t WaitSet::wait(ConditionSeq& active_conditions,
 
   switch (status) {
   case CvStatus_NoTimeout:
+   {
     FILE *fp = fopen("/tmp/opendds-debug", "a+");
     fprintf(fp, "WaitSet::wait\t%d\n", RETCODE_OK);
     fclose(fp);
     return RETCODE_OK;
-
+   }
   case CvStatus_Timeout:
+  {
     FILE *fp1 = fopen("/tmp/opendds-debug", "a+");
 
     fprintf(fp1, "WaitSet::wait\t%d\n", RETCODE_TIMEOUT);
     fclose(fp1);
 
     return RETCODE_TIMEOUT;
-
+  }
   case CvStatus_Error:
   default:
-    if (DCPS_debug_level) {
-      ACE_ERROR((LM_ERROR, "(%P|%t) ERROR: WaitSet::wait: wait_until failed\n"));
+  {
+      if (DCPS_debug_level) {
+        ACE_ERROR((LM_ERROR, "(%P|%t) ERROR: WaitSet::wait: wait_until failed\n"));
+      }
+      FILE *fp2 = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp2, "WaitSet::wait\t%d\n", RETCODE_ERROR);
+      fclose(fp2);
+      return RETCODE_ERROR;
     }
-    FILE *fp2 = fopen("/tmp/opendds-debug", "a+");
-    fprintf(fp2, "WaitSet::wait\t%d\n", RETCODE_ERROR);
-    fclose(fp2);
-    return RETCODE_ERROR;
   }
 }
 
