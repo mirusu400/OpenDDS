@@ -170,14 +170,17 @@ DomainParticipantImpl::create_publisher(
   const DDS::InstanceHandle_t handle = assign_handle();
 
   PublisherImpl* pub = 0;
-  ACE_NEW_RETURN(pub,
-                 PublisherImpl(handle,
-                               pub_id_gen_.next(),
-                               pub_qos,
-                               a_listener,
-                               mask,
-                               this),
-                 DDS::Publisher::_nil());
+  do { 
+    pub = new (::std::nothrow) PublisherImpl(handle, pub_id_gen_.next(), pub_qos, a_listener, mask, this);
+    if (pub == 0) {
+      (*__errno_location ()) = 12;
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DomainParticipantImpl::create_publisher\t%d\n", DDS::Publisher::_nil());
+      fclose(fp);
+      return DDS::Publisher::_nil(); }
+    } 
+  while (0);
+
 
   if (enabled_ && qos_.entity_factory.autoenable_created_entities) {
     pub->enable();

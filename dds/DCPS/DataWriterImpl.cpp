@@ -1679,6 +1679,9 @@ DataWriterImpl::register_instance_i(DDS::InstanceHandle_t& handle,
   DBG_ENTRY_LVL("DataWriterImpl","register_instance_i",6);
 
   if (!enabled_) {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::register_instance_i\t%d\n", DDS::RETCODE_NOT_ENABLED);
+    fclose(fp);
     ACE_ERROR_RETURN((LM_ERROR,
                       ACE_TEXT("(%P|%t) ERROR: ")
                       ACE_TEXT("DataWriterImpl::register_instance_i: ")
@@ -1688,6 +1691,9 @@ DataWriterImpl::register_instance_i(DDS::InstanceHandle_t& handle,
 
   DDS::ReturnCode_t ret = data_container_->register_instance(handle, data);
   if (ret != DDS::RETCODE_OK) {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::register_instance_i\t%d\n", ret);
+    fclose(fp);
     ACE_ERROR_RETURN((LM_ERROR,
                       ACE_TEXT("(%P|%t) ERROR: DataWriterImpl::register_instance_i: ")
                       ACE_TEXT("register instance with container failed, returned <%C>.\n"),
@@ -1702,6 +1708,9 @@ DataWriterImpl::register_instance_i(DDS::InstanceHandle_t& handle,
   DataSampleElement* element = 0;
   ret = this->data_container_->obtain_buffer_for_control(element);
   if (ret != DDS::RETCODE_OK) {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::register_instance_i\t%d\n", ret);
+    fclose(fp);
     ACE_ERROR_RETURN((LM_ERROR,
                       ACE_TEXT("(%P|%t) ERROR: ")
                       ACE_TEXT("DataWriterImpl::register_instance_i: ")
@@ -1724,6 +1733,9 @@ DataWriterImpl::register_instance_i(DDS::InstanceHandle_t& handle,
 
   if (ret != DDS::RETCODE_OK) {
     data_container_->release_buffer(element);
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::register_instance_i\t%d\n", ret);
+    fclose(fp);
     ACE_ERROR_RETURN((LM_ERROR,
                       ACE_TEXT("(%P|%t) ERROR: ")
                       ACE_TEXT("DataWriterImpl::register_instance_i: ")
