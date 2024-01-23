@@ -105,6 +105,9 @@ PublisherImpl::create_datawriter(
                  "(%P|%t) NOTICE: PublisherImpl::create_datawriter: "
                  "topic is nil\n"));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "PublisherImpl::create_datawriter\t%d\n", 0);
+    fclose(fp);
     return 0;
   }
 
@@ -117,12 +120,18 @@ PublisherImpl::create_datawriter(
                  "(%P|%t) NOTICE: PublisherImpl::create_datawriter: "
                  "topic does not belong to same participant\n"));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "PublisherImpl::create_datawriter\t%d\n", 0);
+    fclose(fp);
     return 0;
   }
 
   DDS::DataWriterQos dw_qos;
 
   if (!validate_datawriter_qos(qos, default_datawriter_qos_, a_topic, dw_qos)) {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "PublisherImpl::create_datawriter\t%d\n", 0);
+    fclose(fp);
     return DDS::DataWriter::_nil();
   }
 
@@ -137,6 +146,9 @@ PublisherImpl::create_datawriter(
         ACE_TEXT("topic_servant(topic_name=%C) is nil.\n"),
         name.in()));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "PublisherImpl::create_datawriter\t%d\n", 0);
+    fclose(fp);
     return 0;
   }
 
@@ -152,6 +164,9 @@ PublisherImpl::create_datawriter(
           ACE_TEXT("typesupport(topic_name=%C) is nil.\n"),
           name.in()));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "PublisherImpl::create_datawriter\t%d\n", DDS::DataWriter::_nil());
+    fclose(fp);
     return DDS::DataWriter::_nil();
   }
 
@@ -167,6 +182,9 @@ PublisherImpl::create_datawriter(
           ACE_TEXT("PublisherImpl::create_datawriter, ")
           ACE_TEXT("servant is nil.\n")));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "PublisherImpl::create_datawriter\t%d\n", DDS::DataWriter::_nil());
+    fclose(fp);
     return DDS::DataWriter::_nil();
   }
 
@@ -188,14 +206,21 @@ PublisherImpl::create_datawriter(
             ACE_TEXT("PublisherImpl::create_datawriter, ")
             ACE_TEXT("enable failed.\n")));
       }
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "PublisherImpl::create_datawriter\t%d\n", DDS::DataWriter::_nil());
+      fclose(fp);
       return DDS::DataWriter::_nil();
     }
   } else {
     ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex, guard, pi_lock_, 0);
     writers_not_enabled_.insert(rchandle_from(dw_servant));
   }
+  DDS::DataWriter_ptr retval = DDS::DataWriter::_duplicate(dw_obj.in());
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "PublisherImpl::create_datawriter\t%d\n", retval);
+  fclose(fp);
 
-  return DDS::DataWriter::_duplicate(dw_obj.in());
+  return retval;
 }
 
 DDS::ReturnCode_t
@@ -207,6 +232,9 @@ PublisherImpl::delete_datawriter(DDS::DataWriter_ptr a_datawriter)
       ACE_ERROR((LM_ERROR,
                 "(%P|%t) PublisherImpl::delete_datawriter - dynamic cast to DataWriterImpl failed\n"));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "PublisherImpl::delete_datawriter\t%d\n", DDS::RETCODE_ERROR);
+    fclose(fp);
     return DDS::RETCODE_ERROR;
   }
 
@@ -221,6 +249,9 @@ PublisherImpl::delete_datawriter(DDS::DataWriter_ptr a_datawriter)
             ACE_TEXT("belong to this subscriber\n"),
             LogGuid(dw_servant->get_guid()).c_str()));
       }
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "PublisherImpl::delete_datawriter\t%d\n", DDS::RETCODE_PRECONDITION_NOT_MET);
+      fclose(fp);
       return DDS::RETCODE_PRECONDITION_NOT_MET;
     }
   }
@@ -253,6 +284,9 @@ PublisherImpl::delete_datawriter(DDS::DataWriter_ptr a_datawriter)
             ACE_TEXT("datawriter %C not found.\n"),
             LogGuid(publication_id).c_str()));
       }
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "PublisherImpl::delete_datawriter\t%d\n", DDS::RETCODE_ERROR);
+      fclose(fp);
       return DDS::RETCODE_ERROR;
     }
 
@@ -316,11 +350,16 @@ PublisherImpl::delete_datawriter(DDS::DataWriter_ptr a_datawriter)
           ACE_TEXT("PublisherImpl::delete_datawriter, ")
           ACE_TEXT("publication not removed from discovery.\n")));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "PublisherImpl::delete_datawriter\t%d\n", DDS::RETCODE_ERROR);
+    fclose(fp);
     return DDS::RETCODE_ERROR;
   }
 
   participant->remove_adjust_liveliness_timers();
-
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "PublisherImpl::delete_datawriter\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -344,11 +383,16 @@ PublisherImpl::lookup_datawriter(const char* topic_name)
           ACE_TEXT("The datawriter(topic_name=%C) is not found\n"),
           topic_name));
     }
-
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "PublisherImpl::lookup_datawriter\t%d\n", DDS::DataWriter::_nil());
+    fclose(fp);
     return DDS::DataWriter::_nil();
 
   } else {
-    return DDS::DataWriter::_duplicate(it->second.in());
+    DDS::DataWriter_ptr writer = DDS::DataWriter::_duplicate(it->second.in());
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "PublisherImpl::lookup_datawriter\t%d\n", writer);
+    return writer;
   }
 }
 
@@ -396,9 +440,15 @@ DDS::ReturnCode_t PublisherImpl::delete_contained_entities()
     set_deleted(true);
 
     if (!prepare_to_delete_datawriters()) {
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "PublisherImpl::delete_contained_entities\t%d\n", DDS::RETCODE_ERROR);
+      fclose(fp);
       return DDS::RETCODE_ERROR;
     }
     if (!set_wait_pending_deadline(TheServiceParticipant->new_pending_timeout_deadline())) {
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "PublisherImpl::delete_contained_entities\t%d\n", DDS::RETCODE_ERROR);
+      fclose(fp);
       return DDS::RETCODE_ERROR;
     }
   }
@@ -433,13 +483,18 @@ DDS::ReturnCode_t PublisherImpl::delete_contained_entities()
             ACE_TEXT("datawriter %C.\n"),
             LogGuid(pub_id).c_str()));
       }
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "PublisherImpl::delete_contained_entities\t%d\n", ret);
+      fclose(fp);
       return ret;
     }
   }
 
   // the publisher can now start creating new publications
   set_deleted(false);
-
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "PublisherImpl::delete_contained_entities\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -559,6 +614,9 @@ PublisherImpl::suspend_publications()
           ACE_TEXT("PublisherImpl::suspend_publications, ")
           ACE_TEXT(" Entity is not enabled.\n")));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "PublisherImpl::suspend_publications\t%d\n", DDS::RETCODE_NOT_ENABLED);
+    fclose(fp);
     return DDS::RETCODE_NOT_ENABLED;
   }
 
@@ -567,6 +625,9 @@ PublisherImpl::suspend_publications()
       this->pi_suspended_lock_,
       DDS::RETCODE_ERROR);
   ++suspend_depth_count_;
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "PublisherImpl::suspend_publications\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -590,6 +651,9 @@ PublisherImpl::resume_publications()
           ACE_TEXT("PublisherImpl::resume_publications, ")
           ACE_TEXT(" Entity is not enabled.\n")));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "PublisherImpl::resume_publications\t%d\n", DDS::RETCODE_NOT_ENABLED);
+    fclose(fp);
     return DDS::RETCODE_NOT_ENABLED;
   }
 
@@ -603,6 +667,9 @@ PublisherImpl::resume_publications()
 
     if (suspend_depth_count_ < 0) {
       suspend_depth_count_ = 0;
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "PublisherImpl::resume_publications\t%d\n", DDS::RETCODE_PRECONDITION_NOT_MET);
+      fclose(fp);
       return DDS::RETCODE_PRECONDITION_NOT_MET;
     }
     if (suspend_depth_count_ == 0) {
@@ -620,6 +687,9 @@ PublisherImpl::resume_publications()
       it != publication_map_copy.end(); ++it) {
     it->second->send_suspended_data();
   }
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "PublisherImpl::resume_publications\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
 
   return DDS::RETCODE_OK;
 }
@@ -635,6 +705,9 @@ PublisherImpl::begin_coherent_changes()
           ACE_TEXT("(%P|%t) ERROR: PublisherImpl::begin_coherent_changes:")
           ACE_TEXT(" Publisher is not enabled!\n")));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "PublisherImpl::begin_coherent_changes\t%d\n", DDS::RETCODE_NOT_ENABLED);
+    fclose(fp);
     return DDS::RETCODE_NOT_ENABLED;
   }
 
@@ -644,6 +717,9 @@ PublisherImpl::begin_coherent_changes()
           ACE_TEXT("(%P|%t) ERROR: PublisherImpl::begin_coherent_changes:")
           ACE_TEXT(" QoS policy does not support coherent access!\n")));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "PublisherImpl::begin_coherent_changes\t%d\n", DDS::RETCODE_ERROR);
+    fclose(fp);
     return DDS::RETCODE_ERROR;
   }
 
@@ -657,6 +733,9 @@ PublisherImpl::begin_coherent_changes()
   if (qos_.presentation.access_scope == DDS::INSTANCE_PRESENTATION_QOS) {
     // INSTANCE access scope essentially behaves
     // as a no-op. (see: 7.1.3.6)
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "PublisherImpl::begin_coherent_changes\t%d\n", DDS::RETCODE_OK);
+    fclose(fp);
     return DDS::RETCODE_OK;
   }
 
@@ -668,7 +747,9 @@ PublisherImpl::begin_coherent_changes()
       it->second->begin_coherent_changes();
     }
   }
-
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "PublisherImpl::begin_coherent_changes\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -681,6 +762,9 @@ PublisherImpl::end_coherent_changes()
           ACE_TEXT("(%P|%t) ERROR: PublisherImpl::end_coherent_changes:")
           ACE_TEXT(" Publisher is not enabled!\n")));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "PublisherImpl::end_coherent_changes\t%d\n", DDS::RETCODE_NOT_ENABLED);
+    fclose(fp);
     return DDS::RETCODE_NOT_ENABLED;
   }
 
@@ -690,6 +774,9 @@ PublisherImpl::end_coherent_changes()
           ACE_TEXT("(%P|%t) ERROR: PublisherImpl::end_coherent_changes:")
           ACE_TEXT(" QoS policy does not support coherent access!\n")));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "PublisherImpl::end_coherent_changes\t%d\n", DDS::RETCODE_ERROR);
+    fclose(fp);
     return DDS::RETCODE_ERROR;
   }
 
@@ -704,6 +791,9 @@ PublisherImpl::end_coherent_changes()
           ACE_TEXT("(%P|%t) ERROR: PublisherImpl::end_coherent_changes:")
           ACE_TEXT(" No matching call to begin_coherent_changes!\n")));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "PublisherImpl::end_coherent_changes\t%d\n", DDS::RETCODE_PRECONDITION_NOT_MET);
+    fclose(fp);
     return DDS::RETCODE_PRECONDITION_NOT_MET;
   }
 
@@ -712,6 +802,9 @@ PublisherImpl::end_coherent_changes()
   if (qos_.presentation.access_scope == DDS::INSTANCE_PRESENTATION_QOS) {
     // INSTANCE access scope essentially behaves
     // as a no-op. (see: 7.1.3.6)
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "PublisherImpl::end_coherent_changes\t%d\n", DDS::RETCODE_OK);
+    fclose(fp);
     return DDS::RETCODE_OK;
   }
 
@@ -738,6 +831,9 @@ PublisherImpl::end_coherent_changes()
               ACE_TEXT("(%P|%t) ERROR: PublisherImpl::end_coherent_changes: ")
               ACE_TEXT("failed to insert to GroupCoherentSamples.\n")));
         }
+        FILE *fp = fopen("/tmp/opendds-debug", "a+");
+        fprintf(fp, "PublisherImpl::end_coherent_changes\t%d\n", DDS::RETCODE_ERROR);
+        fclose(fp);
         return DDS::RETCODE_ERROR;
       }
     }
@@ -751,7 +847,9 @@ PublisherImpl::end_coherent_changes()
       it->second->end_coherent_changes(group_samples);
     }
   }
-
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "PublisherImpl::end_coherent_changes\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -767,6 +865,9 @@ PublisherImpl::wait_for_acknowledgments(
           ACE_TEXT("(%P|%t) ERROR: PublisherImpl::wait_for_acknowledgments, ")
           ACE_TEXT("Entity is not enabled.\n")));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "PublisherImpl::wait_for_acknowledgments\t%d\n", DDS::RETCODE_NOT_ENABLED);
+    fclose(fp);
     return DDS::RETCODE_NOT_ENABLED;
   }
 
@@ -796,6 +897,9 @@ PublisherImpl::wait_for_acknowledgments(
                 ACE_TEXT("(%P|%t) ERROR: PublisherImpl::wait_for_acknowledgments, ")
                 ACE_TEXT("Unable to insert AckToken into DataWriterAckMap!\n")));
           }
+          FILE *fp = fopen("/tmp/opendds-debug", "a+");
+          fprintf(fp, "PublisherImpl::wait_for_acknowledgments\t%d\n", DDS::RETCODE_ERROR);
+          fclose(fp);
           return DDS::RETCODE_ERROR;
         }
       }
@@ -808,7 +912,9 @@ PublisherImpl::wait_for_acknowledgments(
           ACE_TEXT("(%P|%t) PublisherImpl::wait_for_acknowledgments() - ")
           ACE_TEXT("not blocking due to no writers requiring acks.\n")));
     }
-
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "PublisherImpl::wait_for_acknowledgments\t%d\n", DDS::RETCODE_OK);
+    fclose(fp);
     return DDS::RETCODE_OK;
   }
 
@@ -819,14 +925,21 @@ PublisherImpl::wait_for_acknowledgments(
 
     it->first->wait_for_specific_ack(token);
   }
-
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "PublisherImpl::wait_for_acknowledgments\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
 DDS::DomainParticipant_ptr
 PublisherImpl::get_participant()
 {
-  return participant_.lock()._retn();
+  // NOTE::: Pointer in stack memory?
+  DDS::DomainParticipant_var participant_var = participant_.lock()._retn();
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "PublisherImpl::get_participant\t%d\n", participant_var);
+  fclose(fp);
+  return participant_var;
 }
 
 DDS::ReturnCode_t
@@ -834,9 +947,15 @@ PublisherImpl::set_default_datawriter_qos(const DDS::DataWriterQos & qos)
 {
   if (Qos_Helper::valid(qos) && Qos_Helper::consistent(qos)) {
     default_datawriter_qos_ = qos;
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "PublisherImpl::set_default_datawriter_qos\t%d\n", DDS::RETCODE_OK);
+    fclose(fp);
     return DDS::RETCODE_OK;
 
   } else {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "PublisherImpl::set_default_datawriter_qos\t%d\n", DDS::RETCODE_INCONSISTENT_POLICY);
+    fclose(fp);
     return DDS::RETCODE_INCONSISTENT_POLICY;
   }
 }
@@ -845,6 +964,9 @@ DDS::ReturnCode_t
 PublisherImpl::get_default_datawriter_qos(DDS::DataWriterQos & qos)
 {
   qos = default_datawriter_qos_;
+  FILE *fp = fopen("/tmp/opendds-debug", "a+"); 
+  fprintf(fp, "PublisherImpl::get_default_datawriter_qos\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -853,8 +975,14 @@ PublisherImpl::copy_from_topic_qos(DDS::DataWriterQos &  a_datawriter_qos,
     const DDS::TopicQos & a_topic_qos)
 {
   if (Qos_Helper::copy_from_topic_qos(a_datawriter_qos, a_topic_qos)) {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "PublisherImpl::copy_from_topic_qos\t%d\n", DDS::RETCODE_OK);
+    fclose(fp);
     return DDS::RETCODE_OK;
   } else {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "PublisherImpl::copy_from_topic_qos\t%d\n", DDS::RETCODE_INCONSISTENT_POLICY);
+    fclose(fp);
     return DDS::RETCODE_INCONSISTENT_POLICY;
   }
 }

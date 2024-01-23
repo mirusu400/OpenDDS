@@ -114,6 +114,9 @@ SubscriberImpl::create_datareader(
                  "(%P|%t) NOTICE: SubscriberImpl::create_datareader: "
                  "topic is nil\n"));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "SubscriberImpl::create_datareader\t%d\n", 0);
+    fclose(fp);
     return 0;
   }
 
@@ -126,13 +129,19 @@ SubscriberImpl::create_datareader(
                  "(%P|%t) NOTICE: SubscriberImpl::create_datareader: "
                  "topic does not belong to same participant\n"));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "SubscriberImpl::create_datareader%d\n", 0);
+    fclose(fp);
     return 0;
   }
 
   DDS::DataReaderQos dr_qos;
   RcHandle<DomainParticipantImpl> participant = this->participant_.lock();
-  if (!participant)
-    return DDS::DataReader::_nil();
+  if (!participant) {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "SubscriberImpl::create_datareader%d\n", 0);
+    fclose(fp);
+  }
 
   TopicImpl* topic_servant = dynamic_cast<TopicImpl*>(a_topic_desc);
 
@@ -162,8 +171,12 @@ SubscriberImpl::create_datareader(
     }
   }
 
-  if (!validate_datareader_qos (qos, default_datareader_qos_, topic_servant, dr_qos, mt))
+  if (!validate_datareader_qos (qos, default_datareader_qos_, topic_servant, dr_qos, mt)) {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "SubscriberImpl::create_datareader%d\n", DDS::DataReader::_nil());
+    fclose(fp);
     return DDS::DataReader::_nil();
+  }
 
 #ifndef OPENDDS_NO_MULTI_TOPIC
   if (mt) {
@@ -181,11 +194,17 @@ SubscriberImpl::create_datareader(
                       ACE_TEXT("SubscriberImpl::create_datareader, ")
                       ACE_TEXT("enable of MultiTopicDataReader failed.\n")));
           }
-          return DDS::DataReader::_nil();
+          FILE *fp = fopen("/tmp/opendds-debug", "a+");
+          fprintf(fp, "SubscriberImpl::create_datareader%d\n", DDS::DataReader::_nil());
+          fclose(fp);
         }
         multitopic_reader_enabled(dr);
       }
-      return dr._retn();
+      DDS::DataReader_ptr dr_ptr = dr._retn();
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "SubscriberImpl::create_datareader%d\n", dr_ptr);
+      fclose(fp);
+      return dr_ptr;
     } catch (const std::exception& e) {
       if (DCPS_debug_level > 0) {
         ACE_ERROR((LM_ERROR,

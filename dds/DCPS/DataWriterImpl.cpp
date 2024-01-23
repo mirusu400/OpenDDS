@@ -1017,7 +1017,12 @@ DataWriterImpl::get_ext_listener()
 DDS::Topic_ptr
 DataWriterImpl::get_topic()
 {
-  return DDS::Topic::_duplicate(topic_servant_.get());
+
+  DDS::Topic_ptr topic = DDS::Topic::_duplicate(topic_servant_.get());
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataWriterImpl::get_topic\t%d\n", topic);
+  fclose(fp);
+  return topic;
 }
 
 bool
@@ -1096,13 +1101,22 @@ DataWriterImpl::send_request_ack()
 DDS::ReturnCode_t
 DataWriterImpl::wait_for_acknowledgments(const DDS::Duration_t& max_wait)
 {
-  if (this->qos_.reliability.kind != DDS::RELIABLE_RELIABILITY_QOS)
+  if (this->qos_.reliability.kind != DDS::RELIABLE_RELIABILITY_QOS) {
+    FILE *fp = ACE_OS::fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::wait_for_acknowledgments\t%d\n", DDS::RETCODE_OK);
+    fclose(fp);
     return DDS::RETCODE_OK;
+  }
 
   DDS::ReturnCode_t ret = send_request_ack();
 
-  if (ret != DDS::RETCODE_OK)
+  if (ret != DDS::RETCODE_OK) {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::wait_for_acknowledgments\t%d\n", ret);
+    fclose(fp);
     return ret;
+  }
+    
 
   DataWriterImpl::AckToken token = create_ack_token(max_wait);
   if (DCPS_debug_level) {
@@ -1110,7 +1124,11 @@ DataWriterImpl::wait_for_acknowledgments(const DDS::Duration_t& max_wait)
                           ACE_TEXT(" waiting for acknowledgment of sequence %q at %T\n"),
                           token.sequence_.getValue()));
   }
-  return wait_for_specific_ack(token);
+  DDS::ReturnCode_t result = wait_for_specific_ack(token);
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataWriterImpl::wait_for_acknowledgments\t%d\n", result);
+  fclose(fp);
+  return result;
 }
 
 DDS::ReturnCode_t
@@ -1122,20 +1140,31 @@ DataWriterImpl::wait_for_specific_ack(const AckToken& token)
 DDS::Publisher_ptr
 DataWriterImpl::get_publisher()
 {
-  return publisher_servant_.lock()._retn();
+  DDS::Publisher_ptr pub = publisher_servant_.lock()._retn();
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataWriterImpl::get_publisher\t%d\n", pub);
+  fclose(fp);
+  return pub;
 }
 
 DDS::ReturnCode_t
 DataWriterImpl::get_liveliness_lost_status(
   DDS::LivelinessLostStatus & status)
 {
-  ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex,
-                   guard,
-                   this->lock_,
-                   DDS::RETCODE_ERROR);
+  ACE_Guard< ACE_Recursive_Thread_Mutex > guard (this->lock_);
+  if (guard.locked () != 0) { ;; }
+  else {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::get_liveliness_lost_status\t%d\n", DDS::RETCODE_ERROR);
+    fclose(fp);
+    return DDS::RETCODE_ERROR;
+  }
   set_status_changed_flag(DDS::LIVELINESS_LOST_STATUS, false);
   status = liveliness_lost_status_;
   liveliness_lost_status_.total_count_change = 0;
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataWriterImpl::get_liveliness_lost_status\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -1143,10 +1172,14 @@ DDS::ReturnCode_t
 DataWriterImpl::get_offered_deadline_missed_status(
   DDS::OfferedDeadlineMissedStatus & status)
 {
-  ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex,
-                   guard,
-                   this->lock_,
-                   DDS::RETCODE_ERROR);
+  ACE_Guard< ACE_Recursive_Thread_Mutex > guard (this->lock_);
+  if (guard.locked () != 0) { ;; }
+  else { 
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::get_offered_deadline_missed_status\t%d\n", DDS::RETCODE_ERROR);
+    fclose(fp);
+    return DDS::RETCODE_ERROR;
+  }
 
   set_status_changed_flag(DDS::OFFERED_DEADLINE_MISSED_STATUS, false);
 
@@ -1161,7 +1194,9 @@ DataWriterImpl::get_offered_deadline_missed_status(
   status = offered_deadline_missed_status_;
 
   this->offered_deadline_missed_status_.total_count_change = 0;
-
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataWriterImpl::get_offered_deadline_missed_status\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -1169,13 +1204,19 @@ DDS::ReturnCode_t
 DataWriterImpl::get_offered_incompatible_qos_status(
   DDS::OfferedIncompatibleQosStatus & status)
 {
-  ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex,
-                   guard,
-                   this->lock_,
-                   DDS::RETCODE_ERROR);
+  ACE_Guard< ACE_Recursive_Thread_Mutex > guard (this->lock_); if (guard.locked () != 0) { ;; }
+  else { 
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::get_offered_incompatible_qos_status\t%d\n", DDS::RETCODE_ERROR);
+    fclose(fp);
+    return DDS::RETCODE_ERROR;
+  }
   set_status_changed_flag(DDS::OFFERED_INCOMPATIBLE_QOS_STATUS, false);
   status = offered_incompatible_qos_status_;
   offered_incompatible_qos_status_.total_count_change = 0;
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataWriterImpl::get_offered_incompatible_qos_status\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -1183,14 +1224,21 @@ DDS::ReturnCode_t
 DataWriterImpl::get_publication_matched_status(
   DDS::PublicationMatchedStatus & status)
 {
-  ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex,
-                   guard,
-                   this->lock_,
-                   DDS::RETCODE_ERROR);
+  ACE_Guard< ACE_Recursive_Thread_Mutex > guard (this->lock_);
+  if (guard.locked () != 0) { ;; }
+  else { 
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::get_publication_matched_status\t%d\n", DDS::RETCODE_ERROR);
+    fclose(fp);
+    return DDS::RETCODE_ERROR;
+  }
   set_status_changed_flag(DDS::PUBLICATION_MATCHED_STATUS, false);
   status = publication_match_status_;
   publication_match_status_.total_count_change = 0;
   publication_match_status_.current_count_change = 0;
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataWriterImpl::get_publication_matched_status\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -1206,17 +1254,26 @@ DataWriterImpl::assert_liveliness()
     {
       RcHandle<DomainParticipantImpl> participant = this->participant_servant_.lock();
       if (participant) {
-        return participant->assert_liveliness();
+        DDS::ReturnCode_t ret = participant->assert_liveliness();
+        FILE *fp = fopen("/tmp/opendds-debug", "a+");
+        fprintf(fp, "DataWriterImpl::assert_liveliness\t%d\n", ret);
+        fclose(fp);
+        return ret;
       }
     }
     break;
   case DDS::MANUAL_BY_TOPIC_LIVELINESS_QOS:
     if (!send_liveliness(MonotonicTimePoint::now())) {
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DataWriterImpl::assert_liveliness\t%d\n", DDS::RETCODE_ERROR);
+      fclose(fp);
       return DDS::RETCODE_ERROR;
     }
     break;
   }
-
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataWriterImpl::assert_liveliness\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -1259,6 +1316,9 @@ DataWriterImpl::get_matched_subscriptions(
   DDS::InstanceHandleSeq & subscription_handles)
 {
   if (!enabled_) {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::get_matched_subscriptions\t%d\n", DDS::RETCODE_NOT_ENABLED);
+    fclose(fp);
     ACE_ERROR_RETURN((LM_ERROR,
                       ACE_TEXT("(%P|%t) ERROR: ")
                       ACE_TEXT("DataWriterImpl::get_matched_subscriptions: ")
@@ -1266,10 +1326,14 @@ DataWriterImpl::get_matched_subscriptions(
                      DDS::RETCODE_NOT_ENABLED);
   }
 
-  ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex,
-                   guard,
-                   this->lock_,
-                   DDS::RETCODE_ERROR);
+  ACE_Guard< ACE_Recursive_Thread_Mutex > guard (this->lock_);
+  if (guard.locked () != 0) { ;; }
+  else { 
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::get_matched_subscriptions\t%d\n", DDS::RETCODE_ERROR);
+    fclose(fp);
+    return DDS::RETCODE_ERROR;
+  }
 
   // Copy out the handles for the current set of subscriptions.
   int index = 0;
@@ -1282,7 +1346,9 @@ DataWriterImpl::get_matched_subscriptions(
        ++current, ++index) {
     subscription_handles[index] = current->second;
   }
-
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataWriterImpl::get_matched_subscriptions\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -1293,6 +1359,9 @@ DataWriterImpl::get_matched_subscription_data(
   DDS::InstanceHandle_t subscription_handle)
 {
   if (!enabled_) {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::get_matched_subscription_data\t%d\n", DDS::RETCODE_NOT_ENABLED);
+    fclose(fp);
     ACE_ERROR_RETURN((LM_ERROR,
                       ACE_TEXT("(%P|%t) ERROR: DataWriterImpl::")
                       ACE_TEXT("get_matched_subscription_data: ")
@@ -1315,6 +1384,10 @@ DataWriterImpl::get_matched_subscription_data(
   if (ret == DDS::RETCODE_OK) {
     subscription_data = data[0];
   }
+
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataWriterImpl::get_matched_subscription_data\t%d\n", ret);
+  fclose(fp);
 
   return ret;
 }
@@ -1658,7 +1731,9 @@ DataWriterImpl::register_instance_i(DDS::InstanceHandle_t& handle,
                       retcode_to_string(ret)),
                      ret);
   }
-
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataWriterImpl::register_instance_i\t%d\n");
+  fclose(fp);
   return ret;
 }
 
@@ -1697,6 +1772,9 @@ DataWriterImpl::unregister_instance_i(DDS::InstanceHandle_t handle,
   DBG_ENTRY_LVL("DataWriterImpl","unregister_instance_i",6);
 
   if (!enabled_) {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::unregister_instance_i\t%d\n", DDS::RETCODE_NOT_ENABLED);
+    fclose(fp);
     ACE_ERROR_RETURN((LM_ERROR,
                       ACE_TEXT("(%P|%t) ERROR: DataWriterImpl::unregister_instance_i: ")
                       ACE_TEXT("Entity is not enabled.\n")),
@@ -1706,15 +1784,29 @@ DataWriterImpl::unregister_instance_i(DDS::InstanceHandle_t handle,
   // According to spec 1.2, autodispose_unregistered_instances true causes
   // dispose on the instance prior to calling unregister operation.
   if (this->qos_.writer_data_lifecycle.autodispose_unregistered_instances) {
-    return this->dispose_and_unregister(handle, samp, source_timestamp);
+    DDS::ReturnCode_t ret = this->dispose_and_unregister(handle, samp, source_timestamp);
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::unregister_instance_i\t%d\n");
+    fclose(fp);
+    return ret;
   }
 
   DDS::ReturnCode_t ret = DDS::RETCODE_ERROR;
-  ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex, guard, get_lock(), ret);
+  ACE_Guard< ACE_Recursive_Thread_Mutex > guard (get_lock());
+  if (guard.locked () != 0) { ;; } else { 
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::unregister_instance_i\t%d\n", DDS::RETCODE_ERROR);
+    fclose(fp);
+    return ret; 
+  }
+
   Message_Block_Ptr unregistered_sample_data;
   ret = this->data_container_->unregister(handle, unregistered_sample_data);
 
   if (ret != DDS::RETCODE_OK) {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::unregister_instance_i\t%d\n", ret);
+    fclose(fp);
     ACE_ERROR_RETURN((LM_ERROR,
                       ACE_TEXT("(%P|%t) ERROR: ")
                       ACE_TEXT("DataWriterImpl::unregister_instance_i: ")
@@ -1726,6 +1818,9 @@ DataWriterImpl::unregister_instance_i(DDS::InstanceHandle_t handle,
   ret = this->data_container_->obtain_buffer_for_control(element);
 
   if (ret != DDS::RETCODE_OK) {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::unregister_instance_i\t%d\n", ret);
+    fclose(fp);
     ACE_ERROR_RETURN((LM_ERROR,
                       ACE_TEXT("(%P|%t) ERROR: ")
                       ACE_TEXT("DataWriterImpl::unregister_instance_i: ")
@@ -1744,6 +1839,9 @@ DataWriterImpl::unregister_instance_i(DDS::InstanceHandle_t handle,
 
   if (ret != DDS::RETCODE_OK) {
     data_container_->release_buffer(element);
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::unregister_instance_i\t%d\n", ret);
+    fclose(fp);
     ACE_ERROR_RETURN((LM_ERROR,
                       ACE_TEXT("(%P|%t) ERROR: ")
                       ACE_TEXT("DataWriterImpl::unregister_instance_i: ")
@@ -1759,6 +1857,9 @@ DataWriterImpl::unregister_instance_i(DDS::InstanceHandle_t handle,
     Observer::Sample s(handle, element->get_header().instance_state(), source_timestamp, element->get_header().sequence_, samp->native_data(), *vd);
     observer->on_unregistered(this, s);
   }
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataWriterImpl::unregister_instance_i\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
 
   return DDS::RETCODE_OK;
 }
@@ -1876,16 +1977,25 @@ DataWriterImpl::write(Message_Block_Ptr data,
   GUIDSeq_var filter_out_var(filter_out);
 
   if (!enabled_) {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::write\t%d\n", DDS::RETCODE_NOT_ENABLED);
+    fclose(fp);
     ACE_ERROR_RETURN((LM_ERROR,
                       ACE_TEXT("(%P|%t) ERROR: DataWriterImpl::write: ")
                       ACE_TEXT("Entity is not enabled.\n")),
                      DDS::RETCODE_NOT_ENABLED);
   }
 
-  ACE_GUARD_RETURN (ACE_Recursive_Thread_Mutex,
-                    dc_guard,
-                    get_lock(),
-                    DDS::RETCODE_ERROR);
+
+  ACE_Guard< ACE_Recursive_Thread_Mutex > dc_guard (get_lock());
+  if (dc_guard.locked () != 0) { ;; }
+  else { 
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::write\t%d\n", DDS::RETCODE_ERROR);
+    fclose(fp);
+
+    return DDS::RETCODE_ERROR;
+  }
 
   DataSampleElement* element = 0;
   DDS::ReturnCode_t ret = this->data_container_->obtain_buffer(element, handle);
@@ -1894,6 +2004,9 @@ DataWriterImpl::write(Message_Block_Ptr data,
     return ret; // silent for timeout
 
   } else if (ret != DDS::RETCODE_OK) {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::write\t%d\n", ret);
+    fclose(fp);
     ACE_ERROR_RETURN((LM_ERROR,
                       ACE_TEXT("(%P|%t) ERROR: ")
                       ACE_TEXT("DataWriterImpl::write: ")
@@ -1913,6 +2026,9 @@ DataWriterImpl::write(Message_Block_Ptr data,
 
   if (ret != DDS::RETCODE_OK) {
     data_container_->release_buffer(element);
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::write\t%d\n", ret);
+    fclose(fp);
     return ret;
   }
 
@@ -1922,6 +2038,9 @@ DataWriterImpl::write(Message_Block_Ptr data,
 
   if (ret != DDS::RETCODE_OK) {
     data_container_->release_buffer(element);
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::write\t%d\n", ret);
+    fclose(fp);
     ACE_ERROR_RETURN((LM_ERROR,
                       ACE_TEXT("(%P|%t) ERROR: ")
                       ACE_TEXT("DataWriterImpl::write: ")
@@ -1965,6 +2084,9 @@ DataWriterImpl::write(Message_Block_Ptr data,
     Observer::Sample s(handle, element->get_header().instance_state(), source_timestamp, element->get_header().sequence_, real_data, *vd);
     observer->on_sample_sent(this, s);
   }
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataWriterImpl::write\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
 
   return DDS::RETCODE_OK;
 }
@@ -2030,6 +2152,10 @@ DataWriterImpl::dispose(DDS::InstanceHandle_t handle,
   DBG_ENTRY_LVL("DataWriterImpl","dispose",6);
 
   if (!enabled_) {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::dispose\t%d\n", DDS::RETCODE_NOT_ENABLED);
+    fclose(fp);
+
     ACE_ERROR_RETURN((LM_ERROR,
                       ACE_TEXT("(%P|%t) ERROR: DataWriterImpl::dispose: ")
                       ACE_TEXT("Entity is not enabled.\n")),
@@ -2037,13 +2163,22 @@ DataWriterImpl::dispose(DDS::InstanceHandle_t handle,
   }
 
   DDS::ReturnCode_t ret = DDS::RETCODE_ERROR;
-
-  ACE_GUARD_RETURN (ACE_Recursive_Thread_Mutex, guard, get_lock(), ret);
+  ACE_Guard< ACE_Recursive_Thread_Mutex > guard (get_lock());
+  if (guard.locked () != 0) { ;; }
+  else {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::dispose\t%d\n", ret);
+    fclose(fp);
+    return ret;
+  }
 
   Message_Block_Ptr registered_sample_data;
   ret = this->data_container_->dispose(handle, registered_sample_data);
 
   if (ret != DDS::RETCODE_OK) {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::dispose\t%d\n", ret);
+    fclose(fp);
     ACE_ERROR_RETURN((LM_ERROR,
                       ACE_TEXT("(%P|%t) ERROR: ")
                       ACE_TEXT("DataWriterImpl::dispose: ")
@@ -2055,6 +2190,10 @@ DataWriterImpl::dispose(DDS::InstanceHandle_t handle,
   ret = this->data_container_->obtain_buffer_for_control(element);
 
   if (ret != DDS::RETCODE_OK) {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::dispose\t%d\n", ret);
+    fclose(fp);
+
     ACE_ERROR_RETURN((LM_ERROR,
                       ACE_TEXT("(%P|%t) ERROR: ")
                       ACE_TEXT("DataWriterImpl::dispose: ")
@@ -2073,6 +2212,9 @@ DataWriterImpl::dispose(DDS::InstanceHandle_t handle,
 
   if (ret != DDS::RETCODE_OK) {
     data_container_->release_buffer(element);
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::dispose\t%d\n", ret);
+    fclose(fp);
     ACE_ERROR_RETURN((LM_ERROR,
                       ACE_TEXT("(%P|%t) ERROR: ")
                       ACE_TEXT("DataWriterImpl::dispose: ")
@@ -2088,6 +2230,9 @@ DataWriterImpl::dispose(DDS::InstanceHandle_t handle,
     Observer::Sample s(handle, element->get_header().instance_state(), source_timestamp, element->get_header().sequence_, samp.native_data(), *vd);
     observer->on_disposed(this, s);
   }
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataWriterImpl::dispose\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
 
   return DDS::RETCODE_OK;
 }
@@ -2913,12 +3058,25 @@ DDS::ReturnCode_t DataWriterImpl::setup_serialization()
 
 DDS::ReturnCode_t DataWriterImpl::get_key_value(Sample_rch& sample, DDS::InstanceHandle_t handle)
 {
-  ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex, guard, get_lock(), DDS::RETCODE_ERROR);
+  ACE_Guard< ACE_Recursive_Thread_Mutex > guard (get_lock());
+  if (guard.locked () != 0) { ;; } else {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::get_key_value\t%d\n", DDS::RETCODE_ERROR);
+    fclose(fp);
+    return DDS::RETCODE_ERROR;  
+  }
   const InstanceHandlesToValues::iterator it = instance_handles_to_values_.find(handle);
   if (it == instance_handles_to_values_.end()) {
+    
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::get_key_value\t%d\n", DDS::RETCODE_ERROR);
+    fclose(fp);
     return DDS::RETCODE_BAD_PARAMETER;
   }
   sample = it->second->copy(Sample::Mutable);
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataWriterImpl::get_key_value\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -2926,7 +3084,11 @@ DDS::InstanceHandle_t DataWriterImpl::lookup_instance(const Sample& sample)
 {
   ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex, guard, get_lock(), DDS::RETCODE_ERROR);
   const InstanceValuesToHandles::iterator it = find_instance(sample);
-  return it == instance_values_to_handles_.end() ? DDS::HANDLE_NIL : it->second;
+  DDS::InstanceHandle_t handle = it == instance_values_to_handles_.end() ? DDS::HANDLE_NIL : it->second;
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataWriterImpl::lookup_instance\t%d\n", handle);
+  fclose(fp);
+  return handle;
 }
 
 DDS::InstanceHandle_t DataWriterImpl::register_instance_w_timestamp(
@@ -2939,6 +3101,10 @@ DDS::InstanceHandle_t DataWriterImpl::register_instance_w_timestamp(
                ACE_TEXT("register failed: %C\n"),
                retcode_to_string(ret)));
   }
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "register_instance_w_timestamp\t%d\n", registered_handle);
+  fclose(fp);
+
   return registered_handle;
 }
 
@@ -2948,11 +3114,18 @@ DDS::ReturnCode_t DataWriterImpl::unregister_instance_w_timestamp(
   const DDS::Time_t& timestamp)
 {
   const DDS::ReturnCode_t rc = instance_must_exist(
-    "unregister_instance_w_timestamp", sample, instance_handle, /* remove = */ true);
+    "DataWriterImpl::unregister_instance_w_timestamp", sample, instance_handle, /* remove = */ true);
   if (rc != DDS::RETCODE_OK) {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::unregister_instance_w_timestamp\t%d\n", rc);
+    fclose(fp);
     return rc;
   }
-  return unregister_instance_i(instance_handle, &sample, timestamp);
+  DDS::ReturnCode_t ret = unregister_instance_i(instance_handle, &sample, timestamp);
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataWriterImpl::unregister_instance_w_timestamp\t%d\n", ret);
+  fclose(fp);
+  return ret;
 }
 
 DDS::ReturnCode_t DataWriterImpl::dispose_w_timestamp(
@@ -2971,6 +3144,9 @@ DDS::ReturnCode_t DataWriterImpl::dispose_w_timestamp(
                  "(%P|%t) NOTICE: DataWriterImpl::dispose_w_timestamp: unable to dispose instance SecurityException[%d.%d]: %C\n",
                  ex.code, ex.minor_code, ex.message.in()));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::dispose_w_timestamp\t%d\n", DDS::Security::RETCODE_NOT_ALLOWED_BY_SECURITY);
+    fclose(fp);
     return DDS::Security::RETCODE_NOT_ALLOWED_BY_SECURITY;
   }
 #endif
@@ -2978,9 +3154,16 @@ DDS::ReturnCode_t DataWriterImpl::dispose_w_timestamp(
   const DDS::ReturnCode_t rc = instance_must_exist(
     "dispose_w_timestamp", sample, instance_handle);
   if (rc != DDS::RETCODE_OK) {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataWriterImpl::dispose_w_timestamp\t%d\n", rc);
+    fclose(fp);
     return rc;
   }
-  return dispose(instance_handle, sample, source_timestamp);
+  DDS::ReturnCode_t ret = dispose(instance_handle, sample, source_timestamp);
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataWriterImpl::dispose_w_timestamp\t%d\n", ret);
+  fclose(fp);
+  return ret;
 }
 
 ACE_Message_Block* DataWriterImpl::serialize_sample(const Sample& sample)
@@ -3196,7 +3379,11 @@ DDS::ReturnCode_t DataWriterImpl::write_w_timestamp(
     const DDS::ReturnCode_t ret =
       get_or_create_instance_handle(registered_handle, sample, source_timestamp);
     if (ret != DDS::RETCODE_OK) {
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DataWriterImpl::write_w_timestamp\t%d\n",ret);
+      fclose(fp);
       if (log_level >= LogLevel::Notice) {
+        
         ACE_ERROR((LM_NOTICE, "(%P|%t) NOTICE: %CDataWriterImpl::write_w_timestamp: "
                    "register failed: %C\n",
                    get_type_support()->name(),
@@ -3212,7 +3399,14 @@ DDS::ReturnCode_t DataWriterImpl::write_w_timestamp(
   GUIDSeq_var filter_out;
 #ifndef OPENDDS_NO_CONTENT_FILTERED_TOPIC
   if (publisher_content_filter_) {
-    ACE_GUARD_RETURN(ACE_Thread_Mutex, reader_info_guard, reader_info_lock_, DDS::RETCODE_ERROR);
+    ACE_Guard< ACE_Thread_Mutex > reader_info_guard (reader_info_lock_);
+    if (reader_info_guard.locked () != 0) { ;; }
+    else {
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DataWriterImpl::write_w_timestamp\t%d\n",DDS::RETCODE_ERROR);
+      fclose(fp);
+      return DDS::RETCODE_ERROR;
+    }
     for (RepoIdToReaderInfoMap::iterator iter = reader_info_.begin(),
          end = reader_info_.end(); iter != end; ++iter) {
       const ReaderInfo& ri = iter->second;
@@ -3228,7 +3422,11 @@ DDS::ReturnCode_t DataWriterImpl::write_w_timestamp(
   }
 #endif
 
-  return write_sample(sample, handle, source_timestamp, filter_out._retn());
+  DDS::ReturnCode_t ret = write_sample(sample, handle, source_timestamp, filter_out._retn());
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataWriterImpl::write_w_timestamp\t%d\n", ret);
+  fclose(fp);
+  return ret;
 }
 
 DDS::ReturnCode_t DataWriterImpl::write_sample(
