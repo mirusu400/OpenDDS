@@ -34,22 +34,40 @@ QueryConditionImpl::QueryConditionImpl(
 
 char* QueryConditionImpl::get_query_expression()
 {
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "QueryConditionImpl::get_query_expression()\t%s\n", COBRA::string_dup(query_expression_));
+  fclose(fp);
   return CORBA::string_dup(query_expression_);
 }
 
 DDS::ReturnCode_t
 QueryConditionImpl::get_query_parameters(DDS::StringSeq& query_parameters)
 {
-  ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex, guard, lock_, false);
+  ACE_Guard< ACE_Recursive_Thread_Mutex > guard (lock_);
+  if (guard.locked () != 0) { ;; } else { 
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "QueryConditionImpl::get_query_parameters()\t%d\n", false);
+    fclose(fp);
+    return false;
+  }
   query_parameters = query_parameters_;
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "QueryConditionImpl::get_query_parameters()\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
 DDS::ReturnCode_t
 QueryConditionImpl::set_query_parameters(const DDS::StringSeq& query_parameters)
 {
-  ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex, guard, lock_, false);
-
+  ACE_Guard< ACE_Recursive_Thread_Mutex > guard (lock_);
+  if (guard.locked () != 0) { ;; }
+  else { 
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "QueryConditionImpl::set_query_parameters()\t%d\n", false);
+    fclose(fp);
+    return false;
+  }
   // Check sequence of strings that give values to the ‘parameters’ (i.e., "%n" tokens)
   // in the query_expression matches the size of the parameter sequence.
   // The tokens start with 0 which means that when the maximum number used is 1 we need
@@ -61,10 +79,16 @@ QueryConditionImpl::set_query_parameters(const DDS::StringSeq& query_parameters)
         ACE_TEXT("passed incorrect set of query parameters, expected %d received %d\n"),
         evaluator_.number_parameters (), query_parameters.length()));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "QueryConditionImpl::set_query_parameters()\t%d\n", DDS::RETCODE_ERROR);
+    fclose(fp);
     return DDS::RETCODE_ERROR;
   }
 
   query_parameters_ = query_parameters;
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "QueryConditionImpl::set_query_parameters()\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
