@@ -130,7 +130,7 @@ SubscriberImpl::create_datareader(
                  "topic does not belong to same participant\n"));
     }
     FILE *fp = fopen("/tmp/opendds-debug", "a+");
-    fprintf(fp, "SubscriberImpl::create_datareader%d\n", 0);
+    fprintf(fp, "SubscriberImpl::create_datareader\t%d\n", 0);
     fclose(fp);
     return 0;
   }
@@ -139,8 +139,9 @@ SubscriberImpl::create_datareader(
   RcHandle<DomainParticipantImpl> participant = this->participant_.lock();
   if (!participant) {
     FILE *fp = fopen("/tmp/opendds-debug", "a+");
-    fprintf(fp, "SubscriberImpl::create_datareader%d\n", 0);
+    fprintf(fp, "SubscriberImpl::create_datareader\t%d\n", DDS::DataReader::_nil());
     fclose(fp);
+    return DDS::DataReader::_nil();
   }
 
   TopicImpl* topic_servant = dynamic_cast<TopicImpl*>(a_topic_desc);
@@ -173,7 +174,7 @@ SubscriberImpl::create_datareader(
 
   if (!validate_datareader_qos (qos, default_datareader_qos_, topic_servant, dr_qos, mt)) {
     FILE *fp = fopen("/tmp/opendds-debug", "a+");
-    fprintf(fp, "SubscriberImpl::create_datareader%d\n", DDS::DataReader::_nil());
+    fprintf(fp, "SubscriberImpl::create_datareader\t%d\n", DDS::DataReader::_nil());
     fclose(fp);
     return DDS::DataReader::_nil();
   }
@@ -195,14 +196,15 @@ SubscriberImpl::create_datareader(
                       ACE_TEXT("enable of MultiTopicDataReader failed.\n")));
           }
           FILE *fp = fopen("/tmp/opendds-debug", "a+");
-          fprintf(fp, "SubscriberImpl::create_datareader%d\n", DDS::DataReader::_nil());
+          fprintf(fp, "SubscriberImpl::create_datareader\t%d\n", DDS::DataReader::_nil());
           fclose(fp);
+          return DDS::DataReader::_nil();
         }
         multitopic_reader_enabled(dr);
       }
       DDS::DataReader_ptr dr_ptr = dr._retn();
       FILE *fp = fopen("/tmp/opendds-debug", "a+");
-      fprintf(fp, "SubscriberImpl::create_datareader%d\n", dr_ptr);
+      fprintf(fp, "SubscriberImpl::create_datareader\t%d\n", dr_ptr);
       fclose(fp);
       return dr_ptr;
     } catch (const std::exception& e) {
@@ -214,6 +216,9 @@ SubscriberImpl::create_datareader(
                   e.what()));
       }
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "SubscriberImpl::create_datareader\t%d\n", DDS::DataReader::_nil());
+    fclose(fp);
     return DDS::DataReader::_nil();
   }
 #endif
@@ -230,6 +235,9 @@ SubscriberImpl::create_datareader(
                 ACE_TEXT("typesupport(topic_name=%C) is nil.\n"),
                 name.in()));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "SubscriberImpl::create_datareader\t%d\n", DDS::DataReader::_nil());
+    fclose(fp);
     return DDS::DataReader::_nil();
   }
 
@@ -245,6 +253,9 @@ SubscriberImpl::create_datareader(
           ACE_TEXT("SubscriberImpl::create_datareader, ")
           ACE_TEXT("servant is nil.\n")));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "SubscriberImpl::create_datareader\t%d\n", DDS::DataReader::_nil());
+    fclose(fp);
     return DDS::DataReader::_nil();
   }
 
@@ -320,6 +331,9 @@ SubscriberImpl::delete_datareader(::DDS::DataReader_ptr a_datareader)
           LogGuid(dr_servant->get_id()).c_str(), topic_name.in(),
           retcode_to_string(rc), reason));
       }
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "SubscriberImpl::delete_datareader\t%d\n", rc);
+      fclose(fp);
       return rc;
     }
 
@@ -357,10 +371,16 @@ SubscriberImpl::delete_datareader(::DDS::DataReader_ptr a_datareader)
               ACE_TEXT("failed to obtain MultiTopicDataReaderBase.\n"),
               topic_name.in()));
           }
+          FILE *fp = fopen("/tmp/opendds-debug", "a+");
+          fprintf(fp, "SubscriberImpl::delete_datareader\t%d\n", DDS::RETCODE_ERROR);
+          fclose(fp);
           return ::DDS::RETCODE_ERROR;
         }
         mtdrb->cleanup();
         multitopic_reader_map_.erase(mt_iter);
+        FILE *fp = fopen("/tmp/opendds-debug", "a+");
+        fprintf(fp, "SubscriberImpl::delete_datareader\t%d\n", DDS::RETCODE_OK);
+        fclose(fp);
         return DDS::RETCODE_OK;
       }
 #endif
@@ -373,6 +393,9 @@ SubscriberImpl::delete_datareader(::DDS::DataReader_ptr a_datareader)
                     ACE_TEXT("for unknown repo id not found.\n"),
                     topic_name.in()));
         }
+        FILE *fp = fopen("/tmp/opendds-debug", "a+");
+        fprintf(fp, "SubscriberImpl::delete_datareader\t%d\n", DDS::RETCODE_ERROR);
+        fclose(fp);
         return ::DDS::RETCODE_ERROR;
       }
       if (DCPS_debug_level > 0) {
@@ -384,15 +407,22 @@ SubscriberImpl::delete_datareader(::DDS::DataReader_ptr a_datareader)
                   topic_name.in(),
                   LogGuid(id).c_str()));
       }
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "SubscriberImpl::delete_datareader\t%d\n", DDS::RETCODE_ERROR);
+      fclose(fp);
       return ::DDS::RETCODE_ERROR;
     }
 
     datareader_map_.erase(it);
 
-    ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex,
-                     dr_set_guard,
-                     this->dr_set_lock_,
-                     DDS::RETCODE_ERROR);
+    ACE_Guard< ACE_Recursive_Thread_Mutex > dr_set_guard (this->dr_set_lock_);
+    if (dr_set_guard.locked () != 0) { ;; }
+    else { 
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "SubscriberImpl::delete_datareader\t%d\n", DDS::RETCODE_ERROR);
+      fclose(fp);
+      return DDS::RETCODE_ERROR;
+    }
     datareader_set_.erase(dr_servant);
   }
 
@@ -411,6 +441,9 @@ SubscriberImpl::delete_datareader(::DDS::DataReader_ptr a_datareader)
                 ACE_TEXT("SubscriberImpl::delete_datareader: ")
                 ACE_TEXT(" could not remove subscription from discovery.\n")));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "SubscriberImpl::delete_datareader\t%d\n", DDS::RETCODE_ERROR);
+    fclose(fp);
     return ::DDS::RETCODE_ERROR;
   }
 
@@ -418,6 +451,9 @@ SubscriberImpl::delete_datareader(::DDS::DataReader_ptr a_datareader)
   // otherwise some callbacks resulted from remove_association may be lost.
   dr_servant->remove_all_associations();
   dr_servant->cleanup();
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "SubscriberImpl::delete_datareader\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -431,10 +467,13 @@ SubscriberImpl::delete_contained_entities()
 
 #ifndef OPENDDS_NO_MULTI_TOPIC
   {
-    ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex,
-                     guard,
-                     this->si_lock_,
-                     DDS::RETCODE_ERROR);
+    ACE_Guard< ACE_Recursive_Thread_Mutex > guard (this->si_lock_);
+    if (guard.locked () != 0) { ;; } else { 
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "SubscriberImpl::delete_contained_entities\t%d\n", DDS::RETCODE_ERROR);
+      fclose(fp);
+      return DDS::RETCODE_ERROR;
+    }
     for (MultitopicReaderMap::iterator mt_iter = multitopic_reader_map_.begin();
          mt_iter != multitopic_reader_map_.end(); ++mt_iter) {
       drs.push_back(mt_iter->second);
@@ -453,6 +492,9 @@ SubscriberImpl::delete_contained_entities()
                   ACE_TEXT("SubscriberImpl::delete_contained_entities, ")
                   ACE_TEXT("failed to delete datareader\n")));
       }
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "SubscriberImpl::delete_contained_entities\t%d\n", ret);
+      fclose(fp);
       return ret;
     }
   }
@@ -460,10 +502,14 @@ SubscriberImpl::delete_contained_entities()
 #endif
 
   {
-    ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex,
-                     guard,
-                     this->si_lock_,
-                     DDS::RETCODE_ERROR);
+    ACE_Guard< ACE_Recursive_Thread_Mutex > guard (this->si_lock_);
+    if (guard.locked () != 0) { ;; }
+    else {
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "SubscriberImpl::delete_contained_entities\t%d\n", DDS::RETCODE_ERROR);
+      fclose(fp);
+      return DDS::RETCODE_ERROR;
+    }
     DataReaderMap::iterator it;
     DataReaderMap::iterator itEnd = datareader_map_.end();
 
@@ -484,13 +530,18 @@ SubscriberImpl::delete_contained_entities()
                   ACE_TEXT("SubscriberImpl::delete_contained_entities, ")
                   ACE_TEXT("failed to delete datareader\n")));
       }
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "SubscriberImpl::delete_contained_entities\t%d\n", ret);
+      fclose(fp);
       return ret;
     }
   }
 
   // the subscriber can now start creating new publications
   set_deleted(false);
-
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "SubscriberImpl::delete_contained_entities\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -498,10 +549,14 @@ DDS::DataReader_ptr
 SubscriberImpl::lookup_datareader(
   const char * topic_name)
 {
-  ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex,
-                   guard,
-                   this->si_lock_,
-                   DDS::DataReader::_nil());
+  ACE_Guard< ACE_Recursive_Thread_Mutex > guard (this->si_lock_);
+  if (guard.locked () != 0) { ;; }
+  else { 
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "SubscriberImpl::lookup_datareader\t%d\n", DDS::DataReader::_nil());
+    fclose(fp);
+    return DDS::DataReader::_nil();
+    }
 
   // If multiple entries whose key is "topic_name" then which one is
   // returned ? Spec does not limit which one should give.
@@ -511,7 +566,11 @@ SubscriberImpl::lookup_datareader(
 #ifndef OPENDDS_NO_MULTI_TOPIC
     MultitopicReaderMap::iterator mt_iter = multitopic_reader_map_.find(topic_name);
     if (mt_iter != multitopic_reader_map_.end()) {
-      return DDS::DataReader::_duplicate(mt_iter->second);
+      DDS::DataReader_ptr ptr = DDS::DataReader::_duplicate(mt_iter->second);
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "SubscriberImpl::lookup_datareader\t%d\n", ptr);
+      fclose(fp);
+      return ptr;
     }
 #endif
 
@@ -522,11 +581,17 @@ SubscriberImpl::lookup_datareader(
                  ACE_TEXT("The datareader(topic_name=%C) is not found\n"),
                  topic_name));
     }
-
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "SubscriberImpl::lookup_datareader\t%d\n", DDS::DataReader::_nil());
+    fclose(fp);
     return DDS::DataReader::_nil();
 
   } else {
-    return DDS::DataReader::_duplicate(it->second.in());
+    DDS::DataReader_ptr ptr = DDS::DataReader::_duplicate(it->second.in());
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "SubscriberImpl::lookup_datareader\t%d\n", ptr);
+    fclose(fp);
+    return ptr;
   }
 }
 
@@ -539,10 +604,14 @@ SubscriberImpl::get_datareaders(
 {
   DataReaderSet localreaders;
   {
-    ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex,
-                     guard,
-                     this->dr_set_lock_,
-                     DDS::RETCODE_ERROR);
+    ACE_Guard< ACE_Recursive_Thread_Mutex > guard (this->dr_set_lock_);
+    if (guard.locked () != 0) { ;; }
+    else { 
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "SubscriberImpl::get_datareaders\t%d\n", DDS::RETCODE_ERROR);
+      fclose(fp);
+      return DDS::RETCODE_ERROR;
+    }
     localreaders = datareader_set_;
   }
 
@@ -552,6 +621,9 @@ SubscriberImpl::get_datareaders(
   // as set.
   if (this->qos_.presentation.access_scope == ::DDS::GROUP_PRESENTATION_QOS) {
     if (this->access_depth_ == 0 && this->qos_.presentation.coherent_access) {
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "SubscriberImpl::get_datareaders\t%d\n", DDS::RETCODE_PRECONDITION_NOT_MET);
+      fclose(fp);
       return ::DDS::RETCODE_PRECONDITION_NOT_MET;
     }
     if (this->qos_.presentation.ordered_access) {
@@ -565,6 +637,9 @@ SubscriberImpl::get_datareaders(
       // Return list of readers in the order of the source timestamp of the received
       // samples from readers.
       data.get_datareaders(readers);
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "SubscriberImpl::get_datareaders\t%d\n", DDS::RETCODE_OK);
+      fclose(fp);
       return DDS::RETCODE_OK;
     }
   }
@@ -580,6 +655,9 @@ SubscriberImpl::get_datareaders(
       push_back(readers, DDS::DataReader::_duplicate(pos->in()));
     }
   }
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "SubscriberImpl::get_datareaders\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
 
   return DDS::RETCODE_OK;
 }
@@ -589,10 +667,13 @@ SubscriberImpl::notify_datareaders()
 {
   DataReaderMap localreadermap;
   {
-    ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex,
-                    guard,
-                    this->si_lock_,
-                    DDS::RETCODE_ERROR);
+    ACE_Guard< ACE_Recursive_Thread_Mutex > guard (this->si_lock_);
+    if (guard.locked () != 0) { ;; } else { 
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "SubscriberImpl::notify_datareaders\t%d\n", DDS::RETCODE_ERROR);
+      fclose(fp);
+      return DDS::RETCODE_ERROR;
+    }
     localreadermap = datareader_map_;
   }
   for (DataReaderMap::iterator it = localreadermap.begin(); it != localreadermap.end(); ++it) {
@@ -612,10 +693,12 @@ SubscriberImpl::notify_datareaders()
 #ifndef OPENDDS_NO_MULTI_TOPIC
   MultitopicReaderMap localmtr;
   {
-    ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex,
-                    guard,
-                    this->si_lock_,
-                    DDS::RETCODE_ERROR);
+    ACE_Guard< ACE_Recursive_Thread_Mutex > guard (this->si_lock_);
+    if (guard.locked () != 0) { ;; } else {
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "SubscriberImpl::notify_datareaders\t%d\n", DDS::RETCODE_ERROR);
+      fclose(fp);
+      return DDS::RETCODE_ERROR; }
     localmtr = multitopic_reader_map_;
   }
 
@@ -630,6 +713,9 @@ SubscriberImpl::notify_datareaders()
           ACE_TEXT("(%P|%t) ERROR: SubscriberImpl::notify_datareaders: ")
           ACE_TEXT("failed to obtain MultiTopicDataReaderBase.\n")));
       }
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "SubscriberImpl::notify_datareaders\t%d\n", DDS::RETCODE_ERROR);
+      fclose(fp);
       return ::DDS::RETCODE_ERROR;
     }
 
@@ -642,6 +728,9 @@ SubscriberImpl::notify_datareaders()
     }
   }
 #endif
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "SubscriberImpl::notify_datareaders\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
 
   return DDS::RETCODE_OK;
 }
@@ -759,20 +848,29 @@ SubscriberImpl::begin_access()
 {
   DataReaderSet to_call;
   {
-    ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex,
-                     si_guard,
-                     si_lock_,
-                     DDS::RETCODE_ERROR);
+    ACE_Guard< ACE_Recursive_Thread_Mutex > si_guard (si_lock_);
+    if (si_guard.locked () != 0) { ;; } else {
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "SubscriberImpl::begin_access\t%d\n", DDS::RETCODE_ERROR);
+      fclose(fp);
+      return DDS::RETCODE_ERROR;
+    }
     if (!enabled_) {
       if (DCPS_debug_level > 0) {
         ACE_ERROR((LM_ERROR,
                    ACE_TEXT("(%P|%t) ERROR: SubscriberImpl::begin_access:")
                    ACE_TEXT(" Subscriber is not enabled!\n")));
       }
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "SubscriberImpl::begin_access\t%d\n", DDS::RETCODE_NOT_ENABLED);
+      fclose(fp);
       return DDS::RETCODE_NOT_ENABLED;
     }
 
     if (qos_.presentation.access_scope != DDS::GROUP_PRESENTATION_QOS) {
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "SubscriberImpl::begin_access\t%d\n", DDS::RETCODE_OK);
+      fclose(fp);
       return DDS::RETCODE_OK;
     }
 
@@ -780,10 +878,13 @@ SubscriberImpl::begin_access()
     // We should only notify subscription on the first
     // and last change to the current change set:
     if (access_depth_ == 1) {
-      ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex,
-                       dr_set_guard,
-                       dr_set_lock_,
-                       DDS::RETCODE_ERROR);
+      ACE_Guard< ACE_Recursive_Thread_Mutex > dr_set_guard (dr_set_lock_); 
+      if (dr_set_guard.locked () != 0) { ;; } else {
+        FILE *fp = fopen("/tmp/opendds-debug", "a+");
+        fprintf(fp, "SubscriberImpl::begin_access\t%d\n", DDS::RETCODE_ERROR);
+        fclose(fp);
+        return DDS::RETCODE_ERROR;
+      }
       to_call = datareader_set_;
     }
   }
@@ -791,6 +892,10 @@ SubscriberImpl::begin_access()
   for (DataReaderSet::iterator it = to_call.begin(); it != to_call.end(); ++it) {
     (*it)->begin_access();
   }
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "SubscriberImpl::begin_access\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
+
   return DDS::RETCODE_OK;
 }
 
@@ -799,20 +904,29 @@ SubscriberImpl::end_access()
 {
   DataReaderSet to_call;
   {
-    ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex,
-                     si_guard,
-                     si_lock_,
-                     DDS::RETCODE_ERROR);
+    ACE_Guard< ACE_Recursive_Thread_Mutex > si_guard (si_lock_);
+    if (si_guard.locked () != 0) { ;; } else {
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "SubscriberImpl::end_access\t%d\n", DDS::RETCODE_ERROR);
+      fclose(fp);
+      return DDS::RETCODE_ERROR;
+    }
     if (!enabled_) {
       if (DCPS_debug_level > 0) {
         ACE_ERROR((LM_ERROR,
                    ACE_TEXT("(%P|%t) ERROR: SubscriberImpl::end_access:")
                    ACE_TEXT(" Publisher is not enabled!\n")));
       }
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "SubscriberImpl::end_access\t%d\n", DDS::RETCODE_NOT_ENABLED);
+      fclose(fp);
       return DDS::RETCODE_NOT_ENABLED;
     }
 
     if (qos_.presentation.access_scope != DDS::GROUP_PRESENTATION_QOS) {
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "SubscriberImpl::end_access\t%d\n", DDS::RETCODE_OK);
+      fclose(fp);
       return DDS::RETCODE_OK;
     }
 
@@ -822,6 +936,9 @@ SubscriberImpl::end_access()
                    ACE_TEXT("(%P|%t) ERROR: SubscriberImpl::end_access:")
                    ACE_TEXT(" No matching call to begin_coherent_changes!\n")));
       }
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "SubscriberImpl::end_access\t%d\n", DDS::RETCODE_PRECONDITION_NOT_MET);
+      fclose(fp);
       return DDS::RETCODE_PRECONDITION_NOT_MET;
     }
 
@@ -829,10 +946,14 @@ SubscriberImpl::end_access()
     // We should only notify subscription on the first
     // and last change to the current change set:
     if (access_depth_ == 0) {
-      ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex,
-                       dr_set_guard,
-                       dr_set_lock_,
-                       DDS::RETCODE_ERROR);
+      ACE_Guard< ACE_Recursive_Thread_Mutex > dr_set_guard (dr_set_lock_);
+      if (dr_set_guard.locked () != 0) { ;; }
+      else { 
+        FILE *fp = fopen("/tmp/opendds-debug", "a+");
+        fprintf(fp, "SubscriberImpl::end_access\t%d\n", DDS::RETCODE_ERROR);
+        fclose(fp);
+        return DDS::RETCODE_ERROR;
+      }
       to_call = datareader_set_;
     }
   }
@@ -840,6 +961,9 @@ SubscriberImpl::end_access()
   for (DataReaderSet::iterator it = to_call.begin(); it != to_call.end(); ++it) {
     (*it)->end_access();
   }
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "SubscriberImpl::end_access\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -848,7 +972,11 @@ SubscriberImpl::end_access()
 DDS::DomainParticipant_ptr
 SubscriberImpl::get_participant()
 {
-  return participant_.lock()._retn();
+  DDS::DomainParticipant_ptr ptr = participant_.lock()._retn();
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "SubscriberImpl::get_participant\t%d\n", ptr);
+  fclose(fp);
+  return ptr;
 }
 
 DDS::ReturnCode_t
@@ -857,9 +985,15 @@ SubscriberImpl::set_default_datareader_qos(
 {
   if (Qos_Helper::valid(qos) && Qos_Helper::consistent(qos)) {
     default_datareader_qos_ = qos;
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "SubscriberImpl::set_default_datareader_qos\t%d\n", DDS::RETCODE_OK);
+    fclose(fp);
     return DDS::RETCODE_OK;
 
   } else {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "SubscriberImpl::set_default_datareader_qos\t%d\n", DDS::RETCODE_INCONSISTENT_POLICY);
+    fclose(fp);
     return DDS::RETCODE_INCONSISTENT_POLICY;
   }
 }
@@ -869,6 +1003,9 @@ SubscriberImpl::get_default_datareader_qos(
   DDS::DataReaderQos & qos)
 {
   qos = default_datareader_qos_;
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "SubscriberImpl::get_default_datareader_qos\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -878,9 +1015,15 @@ SubscriberImpl::copy_from_topic_qos(
   const DDS::TopicQos & a_topic_qos)
 {
   if (Qos_Helper::copy_from_topic_qos(a_datareader_qos, a_topic_qos) ) {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "SubscriberImpl::copy_from_topic_qos\t%d\n", DDS::RETCODE_OK);
+    fclose(fp);
     return DDS::RETCODE_OK;
 
   } else {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "SubscriberImpl::copy_from_topic_qos\t%d\n", DDS::RETCODE_INCONSISTENT_POLICY);
+    fclose(fp);
     return DDS::RETCODE_INCONSISTENT_POLICY;
   }
 }

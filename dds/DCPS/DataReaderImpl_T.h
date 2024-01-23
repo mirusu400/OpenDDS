@@ -170,16 +170,26 @@ namespace OpenDDS {
         check_inputs("read", received_data, info_seq, max_samples);
       if (DDS::RETCODE_OK != precond)
         {
+          FILE *fp = fopen("/tmp/opendds-debug", "a+");
+          fprintf(fp, "DataReaderImpl_T::read\t%d\n", precond);
+          fclose(fp);
           return precond;
         }
 
-      ACE_GUARD_RETURN (ACE_Recursive_Thread_Mutex,
-                        guard,
-                        sample_lock_,
-                        DDS::RETCODE_ERROR);
-
-      return read_i(received_data, info_seq, max_samples, sample_states,
-                    view_states, instance_states, 0);
+      ACE_Guard< ACE_Recursive_Thread_Mutex > guard (sample_lock_);
+      if (guard.locked () != 0) { ;; } else {
+        FILE *fp = fopen("/tmp/opendds-debug", "a+");
+        fprintf(fp, "DataReaderImpl_T::read\t%d\n", DDS::RETCODE_ERROR);
+        fclose(fp);
+        return DDS::RETCODE_ERROR;
+      }
+      DDS::ReturnCode_t ret = read_i(received_data, info_seq, max_samples,
+                                     sample_states, view_states,
+                                     instance_states, 0);
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DataReaderImpl_T::read\t%d\n", ret);
+      fclose(fp);
+      return ret;
     }
 
     virtual DDS::ReturnCode_t take (
@@ -194,16 +204,26 @@ namespace OpenDDS {
         check_inputs("take", received_data, info_seq, max_samples);
       if (DDS::RETCODE_OK != precond)
         {
+          FILE *fp = fopen("/tmp/opendds-debug", "a+");
+          fprintf(fp, "DataReaderImpl_T::take\t%d\n", precond);
+          fclose(fp);
           return precond;
         }
 
-      ACE_GUARD_RETURN (ACE_Recursive_Thread_Mutex,
-                        guard,
-                        sample_lock_,
-                        DDS::RETCODE_ERROR);
+      ACE_Guard< ACE_Recursive_Thread_Mutex > guard (sample_lock_);
+      if (guard.locked () != 0) { ;; } else {
+        FILE *fp = fopen("/tmp/opendds-debug", "a+");
+        fprintf(fp, "DataReaderImpl_T::take\t%d\n", DDS::RETCODE_ERROR);
+        fclose(fp);
+        return DDS::RETCODE_ERROR;
+      }
 
-      return take_i(received_data, info_seq, max_samples, sample_states,
+      DDS::ReturnCode_t ret = take_i(received_data, info_seq, max_samples, sample_states,
                     view_states, instance_states, 0);
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DataReaderImpl_T::take\t%d\n", ret);
+      fclose(fp);
+      return ret;
     }
 
     virtual DDS::ReturnCode_t read_w_condition (
@@ -216,26 +236,42 @@ namespace OpenDDS {
         check_inputs("read_w_condition", received_data, sample_info, max_samples);
       if (DDS::RETCODE_OK != precond)
         {
+          FILE *fp = fopen("/tmp/opendds-debug", "a+");
+          fprintf(fp, "DataReaderImpl_T::read_w_condition\t%d\n", precond);
+          fclose(fp);
           return precond;
         }
 
-      ACE_GUARD_RETURN (ACE_Recursive_Thread_Mutex, guard, sample_lock_,
-                        DDS::RETCODE_ERROR);
+      ACE_Guard< ACE_Recursive_Thread_Mutex > guard (sample_lock_);
+      if (guard.locked () != 0) { ;; }
+      else { 
+        FILE *fp = fopen("/tmp/opendds-debug", "a+");
+        fprintf(fp, "DataReaderImpl_T::read_w_condition\t%d\n", DDS::RETCODE_ERROR);
+        fclose(fp);
+        return DDS::RETCODE_ERROR;
+      }
 
       if (!has_readcondition(a_condition))
         {
+          FILE *fp = fopen("/tmp/opendds-debug", "a+");
+          fprintf(fp, "DataReaderImpl_T::read_w_condition\t%d\n", DDS::RETCODE_PRECONDITION_NOT_MET);
+          fclose(fp);
           return DDS::RETCODE_PRECONDITION_NOT_MET;
         }
 
-      return read_i(received_data, sample_info, max_samples,
-                    a_condition->get_sample_state_mask(),
-                    a_condition->get_view_state_mask(),
-                    a_condition->get_instance_state_mask(),
+      DDS::ReturnCode_t ret = read_i(received_data, sample_info, max_samples,
+                                     a_condition->get_sample_state_mask(),
+                                     a_condition->get_view_state_mask(),
+                                     a_condition->get_instance_state_mask(),
 #ifndef OPENDDS_NO_QUERY_CONDITION
                     dynamic_cast< DDS::QueryCondition_ptr >(a_condition));
 #else
       0);
 #endif
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DataReaderImpl_T::read_w_condition\t%d\n", ret);
+      fclose(fp);
+      return ret;
   }
 
     virtual DDS::ReturnCode_t take_w_condition (
@@ -248,18 +284,29 @@ namespace OpenDDS {
         check_inputs("take_w_condition", received_data, sample_info, max_samples);
       if (DDS::RETCODE_OK != precond)
         {
+          FILE *fp = fopen("/tmp/opendds-debug", "a+");
+          fprintf(fp, "DataReaderImpl_T::take_w_condition\t%d\n", precond);
+          fclose(fp);
           return precond;
         }
 
-      ACE_GUARD_RETURN (ACE_Recursive_Thread_Mutex, guard, sample_lock_,
-                        DDS::RETCODE_ERROR);
+      ACE_Guard< ACE_Recursive_Thread_Mutex > guard (sample_lock_);
+      if (guard.locked () != 0) { ;; } else { 
+        FILE *fp = fopen("/tmp/opendds-debug", "a+");
+        fprintf(fp, "DataReaderImpl_T::take_w_condition\t%d\n", DDS::RETCODE_ERROR);
+        fclose(fp);
+        return DDS::RETCODE_ERROR;
+      }
 
       if (!has_readcondition(a_condition))
         {
+          FILE *fp = fopen("/tmp/opendds-debug", "a+");
+          fprintf(fp, "DataReaderImpl_T::take_w_condition\t%d\n", DDS::RETCODE_PRECONDITION_NOT_MET);
+          fclose(fp);
           return DDS::RETCODE_PRECONDITION_NOT_MET;
         }
 
-      return take_i(received_data, sample_info, max_samples,
+      DDS::ReturnCode_t ret = take_i(received_data, sample_info, max_samples,
                     a_condition->get_sample_state_mask(),
                     a_condition->get_view_state_mask(),
                     a_condition->get_instance_state_mask(),
@@ -269,13 +316,23 @@ namespace OpenDDS {
                     0
 #endif
                     );
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DataReaderImpl_T::take_w_condition\t%d\n", ret);
+      fclose(fp);
+      return ret;
     }
 
   virtual DDS::ReturnCode_t read_next_sample(MessageType& received_data,
                                              DDS::SampleInfo& sample_info_ref)
   {
     bool found_data = false;
-    ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex, guard, sample_lock_, DDS::RETCODE_ERROR);
+    ACE_Guard< ACE_Recursive_Thread_Mutex > guard (sample_lock_);
+    if (guard.locked () != 0) { ;; } else { 
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DataReaderImpl_T::read_next_sample\t%d\n", DDS::RETCODE_ERROR);
+      fclose(fp);
+      return DDS::RETCODE_ERROR;
+    }
 
     const Observer_rch observer = get_observer(Observer::e_SAMPLE_READ);
 
@@ -322,14 +379,24 @@ namespace OpenDDS {
     }
 
     post_read_or_take();
-    return found_data ? DDS::RETCODE_OK : DDS::RETCODE_NO_DATA;
+    DDS::ReturnCode_t ret = found_data ? DDS::RETCODE_OK : DDS::RETCODE_NO_DATA;
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataReaderImpl_T::read_next_sample\t%d\n", ret);
+    fclose(fp);
+    return ret;
   }
 
   virtual DDS::ReturnCode_t take_next_sample(MessageType& received_data,
                                              DDS::SampleInfo& sample_info_ref)
   {
     bool found_data = false;
-    ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex, guard, sample_lock_, DDS::RETCODE_ERROR);
+    ACE_Guard< ACE_Recursive_Thread_Mutex > guard (sample_lock_);
+    if (guard.locked () != 0) { ;; } else { 
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DataReaderImpl_T::take_next_sample\t%d\n", DDS::RETCODE_ERROR);
+      fclose(fp);
+      return DDS::RETCODE_ERROR;
+    }
 
     const Observer_rch observer = get_observer(Observer::e_SAMPLE_TAKEN);
 
@@ -379,7 +446,11 @@ namespace OpenDDS {
     }
 
     post_read_or_take();
-    return found_data ? DDS::RETCODE_OK : DDS::RETCODE_NO_DATA;
+    DDS::ReturnCode_t ret = found_data ? DDS::RETCODE_OK : DDS::RETCODE_NO_DATA;
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataReaderImpl_T::take_next_sample\t%d\n", ret);
+    fclose(fp);
+    return ret;
   }
 
   virtual DDS::ReturnCode_t read_instance (
@@ -395,15 +466,26 @@ namespace OpenDDS {
       check_inputs("read_instance", received_data, info_seq, max_samples);
     if (DDS::RETCODE_OK != precond)
       {
+        FILE *fp = fopen("/tmp/opendds-debug", "a+");
+        fprintf(fp, "DataReaderImpl_T::read_instance\t%d\n", precond);
+        fclose(fp);
         return precond;
       }
 
-    ACE_GUARD_RETURN (ACE_Recursive_Thread_Mutex,
-                      guard,
-                      sample_lock_,
-                      DDS::RETCODE_ERROR);
-    return read_instance_i(received_data, info_seq, max_samples, a_handle,
+    ACE_Guard< ACE_Recursive_Thread_Mutex > guard (sample_lock_);
+    if (guard.locked () != 0) { ;; } else { 
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DataReaderImpl_T::read_instance\t%d\n", DDS::RETCODE_ERROR);
+      fclose(fp);
+      return DDS::RETCODE_ERROR;
+    }
+
+    DDS::ReturnCode_t ret = read_instance_i(received_data, info_seq, max_samples, a_handle,
                            sample_states, view_states, instance_states, 0);
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataReaderImpl_T::read_instance\t%d\n", ret);
+    fclose(fp);
+    return ret;
   }
 
   virtual DDS::ReturnCode_t take_instance (
@@ -419,15 +501,25 @@ namespace OpenDDS {
       check_inputs("take_instance", received_data, info_seq, max_samples);
     if (DDS::RETCODE_OK != precond)
       {
+        FILE *fp = fopen("/tmp/opendds-debug", "a+");
+        fprintf(fp, "DataReaderImpl_T::take_instance\t%d\n", precond);
+        fclose(fp);
         return precond;
       }
 
-    ACE_GUARD_RETURN (ACE_Recursive_Thread_Mutex,
-                      guard,
-                      sample_lock_,
-                      DDS::RETCODE_ERROR);
-    return take_instance_i(received_data, info_seq, max_samples, a_handle,
+    ACE_Guard< ACE_Recursive_Thread_Mutex > guard (sample_lock_);
+    if (guard.locked () != 0) { ;; } else { 
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DataReaderImpl_T::take_instance\t%d\n", DDS::RETCODE_ERROR);
+      fclose(fp);
+      return DDS::RETCODE_ERROR;
+    }
+    DDS::ReturnCode_t ret= take_instance_i(received_data, info_seq, max_samples, a_handle,
                            sample_states, view_states, instance_states, 0);
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataReaderImpl_T::take_instance\t%d\n", ret);
+    fclose(fp);
+    return ret;
   }
 
   virtual DDS::ReturnCode_t read_instance_w_condition (
@@ -523,11 +615,17 @@ namespace OpenDDS {
       check_inputs("read_next_instance", received_data, info_seq, max_samples);
     if (DDS::RETCODE_OK != precond)
       {
+        FILE *fp = fopen("/tmp/opendds-debug", "a+");
+        fprintf(fp, "DataReaderImpl_T::read_next_instance\t%d\n", precond);
+        fclose(fp);
         return precond;
       }
 
-    return read_next_instance_i(received_data, info_seq, max_samples, a_handle,
+    DDS::ReturnCode_t ret = read_next_instance_i(received_data, info_seq, max_samples, a_handle,
                                 sample_states, view_states, instance_states, 0);
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataReaderImpl_T::read_next_instance\t%d\n", ret);
+    fclose(fp);
   }
 
   virtual DDS::ReturnCode_t take_next_instance (
@@ -543,11 +641,18 @@ namespace OpenDDS {
       check_inputs("take_next_instance", received_data, info_seq, max_samples);
     if (DDS::RETCODE_OK != precond)
       {
+        FILE *fp = fopen("/tmp/opendds-debug", "a+");
+        fprintf(fp, "DataReaderImpl_T::take_next_instance\t%d\n", precond);
+        fclose(fp);
         return precond;
       }
 
-    return take_next_instance_i(received_data, info_seq, max_samples, a_handle,
+    DDS::ReturnCode_t t = take_next_instance_i(received_data, info_seq, max_samples, a_handle,
                                 sample_states, view_states, instance_states, 0);
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataReaderImpl_T::take_next_instance\t%d\n", t);
+    fclose(fp);
+    return t;
   }
 
   virtual DDS::ReturnCode_t read_next_instance_w_condition (
@@ -562,6 +667,9 @@ namespace OpenDDS {
                    max_samples);
     if (DDS::RETCODE_OK != precond)
       {
+        FILE *fp = fopen("/tmp/opendds-debug", "a+");
+        fprintf(fp, "DataReaderImpl_T::read_next_instance_w_condition\t%d\n", precond);
+        fclose(fp);
         return precond;
       }
 
@@ -570,6 +678,9 @@ namespace OpenDDS {
 
     if (!has_readcondition(a_condition))
       {
+        FILE *fp = fopen("/tmp/opendds-debug", "a+");
+        fprintf(fp, "DataReaderImpl_T::read_next_instance_w_condition\t%d\n", DDS::RETCODE_PRECONDITION_NOT_MET);
+        fclose(fp);
         return DDS::RETCODE_PRECONDITION_NOT_MET;
       }
 
@@ -578,7 +689,7 @@ namespace OpenDDS {
         dynamic_cast< DDS::QueryCondition_ptr >(a_condition);
 #endif
 
-    return read_next_instance_i(received_data, info_seq, max_samples, a_handle,
+    DDS::ReturnCode_t ret = read_next_instance_i(received_data, info_seq, max_samples, a_handle,
                                 a_condition->get_sample_state_mask(),
                                 a_condition->get_view_state_mask(),
                                 a_condition->get_instance_state_mask(),
@@ -588,6 +699,10 @@ namespace OpenDDS {
                                 0
 #endif
                                 );
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataReaderImpl_T::read_next_instance_w_condition\t%d\n", ret);
+    fclose(fp);
+    return ret;
   }
 
   virtual DDS::ReturnCode_t take_next_instance_w_condition (
@@ -602,6 +717,9 @@ namespace OpenDDS {
                    max_samples);
     if (DDS::RETCODE_OK != precond)
       {
+        FILE *fp = fopen("/tmp/opendds-debug", "a+");
+        fprintf(fp, "DataReaderImpl_T::take_next_instance_w_condition\t%d\n", precond);
+        fclose(fp);
         return precond;
       }
 
@@ -610,6 +728,9 @@ namespace OpenDDS {
 
     if (!has_readcondition(a_condition))
       {
+        FILE *fp = fopen("/tmp/opendds-debug", "a+");
+        fprintf(fp, "DataReaderImpl_T::take_next_instance_w_condition\t%d\n", DDS::RETCODE_PRECONDITION_NOT_MET);
+        fclose(fp);
         return DDS::RETCODE_PRECONDITION_NOT_MET;
       }
 
@@ -618,7 +739,7 @@ namespace OpenDDS {
         dynamic_cast< DDS::QueryCondition_ptr >(a_condition);
 #endif
 
-    return take_next_instance_i(received_data, info_seq, max_samples, a_handle,
+    DDS::ReturnCode_t ret= take_next_instance_i(received_data, info_seq, max_samples, a_handle,
                                 a_condition->get_sample_state_mask(),
                                 a_condition->get_view_state_mask(),
                                 a_condition->get_instance_state_mask(),
@@ -628,6 +749,10 @@ namespace OpenDDS {
                                 0
 #endif
                                 );
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataReaderImpl_T::take_next_instance_w_condition\t%d\n", ret);
+    fclose(fp);
+    return ret;
   }
 
   virtual DDS::ReturnCode_t return_loan (
@@ -638,12 +763,17 @@ namespace OpenDDS {
     // same read.
     if (received_data.length() != info_seq.length())
       {
+        FILE *fp = fopen("/tmp/opendds-debug", "a+");
+        fprintf(fp, "DataReaderImpl_T::return_loan\t%d\n", DDS::RETCODE_PRECONDITION_NOT_MET);
+        fclose(fp);
         return DDS::RETCODE_PRECONDITION_NOT_MET;
       }
 
     if (received_data.release())
       {
-        // nothing to do because this is not zero-copy data
+        FILE *fp = fopen("/tmp/opendds-debug", "a+");
+        fprintf(fp, "DataReaderImpl_T::return_loan\t%d\n", DDS::RETCODE_OK);
+        fclose(fp);
         return DDS::RETCODE_OK;
       }
     else
@@ -651,6 +781,9 @@ namespace OpenDDS {
         info_seq.length(0);
         received_data.length(0);
       }
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DataReaderImpl_T::return_loan\t%d\n", DDS::RETCODE_OK);
+      fclose(fp);
     return DDS::RETCODE_OK;
   }
 
@@ -662,8 +795,14 @@ namespace OpenDDS {
     const typename ReverseInstanceMap::const_iterator pos = reverse_instance_map_.find(handle);
     if (pos != reverse_instance_map_.end()) {
       key_holder = pos->second->first;
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DataReaderImpl_T::get_key_value\t%d\n", DDS::RETCODE_OK);
+      fclose(fp);
       return DDS::RETCODE_OK;
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataReaderImpl_T::get_key_value\t%d\n", DDS::RETCODE_BAD_PARAMETER);
+    fclose(fp);
 
     return DDS::RETCODE_BAD_PARAMETER;
   }
@@ -674,8 +813,14 @@ namespace OpenDDS {
 
     const typename InstanceMap::const_iterator it = instance_map_.find(instance_data);
     if (it != instance_map_.end()) {
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DataReaderImpl_T::lookup_instance\t%d\n", it->second);
+      fclose(fp);
       return it->second;
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataReaderImpl_T::lookup_instance\t%d\n", DDS::HANDLE_NIL);
+    fclose(fp);
     return DDS::HANDLE_NIL;
   }
 

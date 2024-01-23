@@ -756,11 +756,22 @@ DDS::ReadCondition_ptr DataReaderImpl::create_readcondition(
     DDS::ViewStateMask view_states,
     DDS::InstanceStateMask instance_states)
 {
-  ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex, guard, this->sample_lock_, 0);
+  ACE_Guard< ACE_Recursive_Thread_Mutex > guard (this->sample_lock_);
+  if (guard.locked () != 0) { ;; } else { 
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataReaderImpl::create_readcondition\t%d\n", 0);
+    fclose(fp);
+    return 0;
+  }
   DDS::ReadCondition_var rc = new ReadConditionImpl(this, sample_states,
       view_states, instance_states);
   read_conditions_.insert(rc);
-  return rc._retn();
+  
+  DDS::ReadCondition_ptr ret = rc._retn();
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataReaderImpl::create_readcondition\t%d\n", ret);
+  fclose(fp);
+  return 0;
 }
 
 #ifndef OPENDDS_NO_QUERY_CONDITION
@@ -771,16 +782,29 @@ DDS::QueryCondition_ptr DataReaderImpl::create_querycondition(
     const char* query_expression,
     const DDS::StringSeq& query_parameters)
 {
-  ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex, guard, this->sample_lock_, 0);
+  ACE_Guard< ACE_Recursive_Thread_Mutex > guard (this->sample_lock_);
+  if (guard.locked () != 0) { ;; } else {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataReaderImpl::create_querycondition\t%d\n", 0);
+    fclose(fp);
+    return 0;
+  }
   try {
     DDS::QueryCondition_var qc = new QueryConditionImpl(this, sample_states,
         view_states, instance_states, query_expression);
     if (qc->set_query_parameters(query_parameters) != DDS::RETCODE_OK) {
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DataReaderImpl::create_querycondition\t%d\n", 0);
+      fclose(fp);
       return 0;
     }
     DDS::ReadCondition_var rc = DDS::ReadCondition::_duplicate(qc);
     read_conditions_.insert(rc);
-    return qc._retn();
+    DDS::QueryCondition_ptr ptr = qc._retn();
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataReaderImpl::create_querycondition\t%d\n", ptr);
+    fclose(fp);
+    return ptr;
   } catch (const std::exception& e) {
     if (DCPS_debug_level) {
       ACE_ERROR((LM_ERROR, ACE_TEXT("(%P|%t) ")
@@ -788,6 +812,9 @@ DDS::QueryCondition_ptr DataReaderImpl::create_querycondition(
           e.what()));
     }
   }
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataReaderImpl::create_querycondition\t%d\n", 0);
+  fclose(fp);
   return 0;
 }
 #endif
@@ -802,18 +829,35 @@ bool DataReaderImpl::has_readcondition(DDS::ReadCondition_ptr a_condition)
 DDS::ReturnCode_t DataReaderImpl::delete_readcondition(
     DDS::ReadCondition_ptr a_condition)
 {
-  ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex, guard, this->sample_lock_,
-      DDS::RETCODE_OUT_OF_RESOURCES);
+  ACE_Guard< ACE_Recursive_Thread_Mutex > guard (this->sample_lock_);
+  if (guard.locked () != 0) { ;; } else { 
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataReaderImpl::delete_readcondition\t%d\n", DDS::RETCODE_OUT_OF_RESOURCES);
+    fclose(fp);
+    return DDS::RETCODE_OUT_OF_RESOURCES;
+  }
   DDS::ReadCondition_var rc = DDS::ReadCondition::_duplicate(a_condition);
-  return read_conditions_.erase(rc)
-      ? DDS::RETCODE_OK : DDS::RETCODE_PRECONDITION_NOT_MET;
+  DDS::ReturnCode_t ret = read_conditions_.erase(rc) ? DDS::RETCODE_OK : DDS::RETCODE_PRECONDITION_NOT_MET;
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataReaderImpl::delete_readcondition\t%d\n", ret);
+  fclose(fp);
+  return ret;
 }
 
 DDS::ReturnCode_t DataReaderImpl::delete_contained_entities()
 {
-  ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex, guard, this->sample_lock_,
-      DDS::RETCODE_OUT_OF_RESOURCES);
+  ACE_Guard< ACE_Recursive_Thread_Mutex > guard (this->sample_lock_);
+  if (guard.locked () != 0) { ;; }
+  else { 
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataReaderImpl::delete_contained_entities\t%d\n", DDS::RETCODE_OUT_OF_RESOURCES);
+    fclose(fp);
+    return DDS::RETCODE_OUT_OF_RESOURCES;
+  }
   read_conditions_.clear();
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataReaderImpl::delete_contained_entities\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -931,16 +975,28 @@ DDS::TopicDescription_ptr DataReaderImpl::get_topicdescription()
   {
     ACE_Guard<ACE_Thread_Mutex> guard(content_filtered_topic_mutex_);
     if (content_filtered_topic_) {
-      return DDS::TopicDescription::_duplicate(content_filtered_topic_.get());
+      DDS::TopicDescription_ptr tdesc = DDS::TopicDescription::_duplicate(content_filtered_topic_.get());
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DataReaderImpl::get_topicdescription\t%d\n", tdesc);
+      fclose(fp);
+      return tdesc;
     }
   }
 #endif
-  return DDS::TopicDescription::_duplicate(topic_desc_.in());
+  DDS::TopicDescription_ptr tdesc = DDS::TopicDescription::_duplicate(topic_desc_.in());
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataReaderImpl::get_topicdescription\t%d\n", tdesc);
+  fclose(fp);
+  return tdesc;
 }
 
 DDS::Subscriber_ptr DataReaderImpl::get_subscriber()
 {
-  return get_subscriber_servant()._retn();
+  DDS::Subscriber_ptr ptr = get_subscriber_servant()._retn();
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataReaderImpl::get_subscriber\t%d\n", ptr);
+  fclose(fp);
+  return ptr;
 }
 
 DDS::ReturnCode_t
@@ -952,6 +1008,9 @@ DataReaderImpl::get_sample_rejected_status(
   set_status_changed_flag(DDS::SAMPLE_REJECTED_STATUS, false);
   status = sample_rejected_status_;
   sample_rejected_status_.total_count_change = 0;
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataReaderImpl::get_sample_rejected_status\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -967,7 +1026,9 @@ DataReaderImpl::get_liveliness_changed_status(
 
   liveliness_changed_status_.alive_count_change = 0;
   liveliness_changed_status_.not_alive_count_change = 0;
-
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataReaderImpl::get_liveliness_changed_status\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -992,7 +1053,9 @@ DataReaderImpl::get_requested_deadline_missed_status(
       this->requested_deadline_missed_status_.total_count;
 
   status = requested_deadline_missed_status_;
-
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataReaderImpl::get_requested_deadline_missed_status\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -1005,7 +1068,9 @@ DataReaderImpl::get_requested_incompatible_qos_status(
   set_status_changed_flag(DDS::REQUESTED_INCOMPATIBLE_QOS_STATUS, false);
   status = requested_incompatible_qos_status_;
   requested_incompatible_qos_status_.total_count_change = 0;
-
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataReaderImpl::get_requested_incompatible_qos_status\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -1032,6 +1097,9 @@ DataReaderImpl::get_sample_lost_status(
   set_status_changed_flag(DDS::SAMPLE_LOST_STATUS, false);
   status = sample_lost_status_;
   sample_lost_status_.total_count_change = 0;
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataReaderImpl::get_sample_lost_status\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -1040,6 +1108,9 @@ DataReaderImpl::wait_for_historical_data(
     const DDS::Duration_t & /* max_wait */)
 {
   // Add your implementation here
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataReaderImpl::wait_for_historical_data\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
   return DDS::RETCODE_OK;
 }
 
@@ -1048,16 +1119,22 @@ DataReaderImpl::get_matched_publications(
     DDS::InstanceHandleSeq & publication_handles)
 {
   if (!enabled_) {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataReaderImpl::get_matched_publications\t%d\n", DDS::RETCODE_NOT_ENABLED);
+    fclose(fp);
     ACE_ERROR_RETURN((LM_ERROR,
         ACE_TEXT("(%P|%t) ERROR: DataReaderImpl::get_matched_publications: ")
         ACE_TEXT(" Entity is not enabled.\n")),
         DDS::RETCODE_NOT_ENABLED);
   }
 
-  ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex,
-      guard,
-      publication_handle_lock_,
-      DDS::RETCODE_ERROR);
+  ACE_Guard< ACE_Recursive_Thread_Mutex > guard (publication_handle_lock_);
+  if (guard.locked () != 0) { ;; } else {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataReaderImpl::get_matched_publications\t%d\n", DDS::RETCODE_ERROR);
+    fclose(fp);
+    return DDS::RETCODE_ERROR;
+  }
 
   // Copy out the handles for the current set of publications.
   int index = 0;
@@ -1069,6 +1146,9 @@ DataReaderImpl::get_matched_publications(
       ++current, ++index) {
     publication_handles[index] = current->second;
   }
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataReaderImpl::get_matched_publications\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
 
   return DDS::RETCODE_OK;
 }
@@ -1080,6 +1160,9 @@ DataReaderImpl::get_matched_publication_data(
     DDS::InstanceHandle_t publication_handle)
 {
   if (!enabled_) {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataReaderImpl::get_matched_publication_data\t%d\n", DDS::RETCODE_NOT_ENABLED);
+    fclose(fp);
     ACE_ERROR_RETURN((LM_ERROR,
         ACE_TEXT("(%P|%t) ERROR: DataReaderImpl::")
         ACE_TEXT("get_matched_publication_data: ")
@@ -1089,8 +1172,12 @@ DataReaderImpl::get_matched_publication_data(
 
   RcHandle<DomainParticipantImpl> participant = this->participant_servant_.lock();
 
-  if (!participant)
+  if (!participant) {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DataReaderImpl::get_matched_publication_data\t%d\n", DDS::RETCODE_ERROR);
+    fclose(fp);
     return DDS::RETCODE_ERROR;
+  }
 
   DDS::PublicationBuiltinTopicDataSeq data;
   const DDS::ReturnCode_t ret = instance_handle_to_bit_data<DDS::PublicationBuiltinTopicDataDataReader_var>(
@@ -1102,7 +1189,9 @@ DataReaderImpl::get_matched_publication_data(
   if (ret == DDS::RETCODE_OK) {
     publication_data = data[0];
   }
-
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DataReaderImpl::get_matched_publication_data\t%d\n", ret);
+  fclose(fp);
   return ret;
 }
 #endif // !defined (DDS_HAS_MINIMUM_BIT)

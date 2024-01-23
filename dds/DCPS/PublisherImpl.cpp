@@ -939,7 +939,7 @@ PublisherImpl::get_participant()
   FILE *fp = fopen("/tmp/opendds-debug", "a+");
   fprintf(fp, "PublisherImpl::get_participant\t%d\n", participant_var);
   fclose(fp);
-  return participant_var
+  return participant_var;
 }
 
 DDS::ReturnCode_t
