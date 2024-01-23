@@ -35,7 +35,7 @@ QueryConditionImpl::QueryConditionImpl(
 char* QueryConditionImpl::get_query_expression()
 {
   FILE *fp = fopen("/tmp/opendds-debug", "a+");
-  fprintf(fp, "QueryConditionImpl::get_query_expression()\t%s\n", COBRA::string_dup(query_expression_));
+  fprintf(fp, "QueryConditionImpl::get_query_expression()\t%s\n", CORBA::string_dup(query_expression_));
   fclose(fp);
   return CORBA::string_dup(query_expression_);
 }

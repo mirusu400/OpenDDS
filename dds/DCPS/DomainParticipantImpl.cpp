@@ -340,7 +340,7 @@ DomainParticipantImpl::create_subscriber(
       fclose(fp);
       return DDS::Subscriber::_nil();
     }
-  } while (0)
+  } while (0);
 
   if (enabled_ && qos_.entity_factory.autoenable_created_entities) {
     sub->enable();
