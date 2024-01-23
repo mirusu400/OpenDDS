@@ -191,10 +191,13 @@ DomainParticipantImpl::create_publisher(
   // this object will also act as the guard for leaking Publisher Impl
   Publisher_Pair pair(pub, pub_obj, false);
 
-  ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex,
-                   tao_mon,
-                   this->publishers_protector_,
-                   DDS::Publisher::_nil());
+  ACE_Guard< ACE_Recursive_Thread_Mutex > tao_mon (this->publishers_protector_);
+  if (tao_mon.locked () != 0) { ;; } else {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::create_publisher\t%d\n", DDS::Publisher::_nil());
+    fclose(fp); 
+    return DDS::Publisher::_nil();
+  }
 
   if (OpenDDS::DCPS::insert(publishers_, pair) == -1) {
     if (DCPS_debug_level > 0) {
@@ -239,13 +242,22 @@ DomainParticipantImpl::delete_publisher(
   const Publisher_Pair pub_pair(the_servant, p, true);
 
   {
-    ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex, g,
-      publishers_protector_, DDS::RETCODE_ERROR);
+    ACE_Guard< ACE_Recursive_Thread_Mutex > g (publishers_protector_);
+    if (g.locked () != 0) { ;; }
+    else { 
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DomainParticipantImpl::delete_publisher\t%d\n", DDS::RETCODE_ERROR);
+      fclose(fp);
+      return DDS::RETCODE_ERROR;
+    }
     if (publishers_.count(pub_pair) == 0) {
       if (log_level >= LogLevel::Notice) {
         ACE_ERROR((LM_NOTICE, "(%P|%t) NOTICE: DomainParticipantImpl::delete_publisher: "
                    "This publisher doesn't belong to this participant\n"));
       }
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DomainParticipantImpl::delete_publisher\t%d\n", DDS::RETCODE_PRECONDITION_NOT_MET);
+      fclose(fp);
       return DDS::RETCODE_PRECONDITION_NOT_MET;
     }
   }
@@ -257,6 +269,9 @@ DomainParticipantImpl::delete_publisher(
                  "The publisher is not empty. %C leftover\n",
                  leftover_entities.c_str()));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::delete_publisher\t%d\n", DDS::RETCODE_PRECONDITION_NOT_MET);
+    fclose(fp);
     return DDS::RETCODE_PRECONDITION_NOT_MET;
   }
 
@@ -266,20 +281,34 @@ DomainParticipantImpl::delete_publisher(
       ACE_ERROR((LM_NOTICE, "(%P|%t) NOTICE: DomainParticipantImpl::delete_publisher: "
                  "Failed to delete contained entities: %C\n", retcode_to_string(ret)));
     }
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::delete_publisher\t%d\n", ret);
+    fclose(fp);
     return ret;
   }
 
   {
-    ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex, g,
-      publishers_protector_, DDS::RETCODE_ERROR);
+    ACE_Guard< ACE_Recursive_Thread_Mutex > g (publishers_protector_);
+    if (g.locked () != 0) { ;; } else {
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DomainParticipantImpl::delete_publisher\t%d\n", DDS::RETCODE_ERROR);
+      fclose(fp);
+      return DDS::RETCODE_ERROR;
+    }
     if (remove(publishers_, pub_pair) == -1) {
       if (log_level >= LogLevel::Notice) {
         ACE_ERROR((LM_NOTICE, "(%P|%t) NOTICE: DomainParticipantImpl::delete_publisher: "
           "publisher not found\n"));
       }
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DomainParticipantImpl::delete_publisher\t%d\n", DDS::RETCODE_ERROR);
+      fclose(fp);
       return DDS::RETCODE_ERROR;
     }
   }
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantImpl::delete_publisher\t%d\n", DDS::RETCODE_OK);
+  fclose(fp);
 
   return DDS::RETCODE_OK;
 }
@@ -302,13 +331,16 @@ DomainParticipantImpl::create_subscriber(
   const DDS::InstanceHandle_t handle = assign_handle();
 
   SubscriberImpl* sub = 0;
-  ACE_NEW_RETURN(sub,
-                 SubscriberImpl(handle,
-                                sub_qos,
-                                a_listener,
-                                mask,
-                                this),
-                 DDS::Subscriber::_nil());
+  do {
+    sub = new (::std::nothrow) SubscriberImpl(handle, sub_qos, a_listener, mask, this);
+    if (sub == 0) {
+      (*__errno_location ()) = 12;
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DomainParticipantImpl::create_subscriber\t%d\n", DDS::Subscriber::_nil());
+      fclose(fp);
+      return DDS::Subscriber::_nil();
+    }
+  } while (0)
 
   if (enabled_ && qos_.entity_factory.autoenable_created_entities) {
     sub->enable();
@@ -318,10 +350,14 @@ DomainParticipantImpl::create_subscriber(
 
   Subscriber_Pair pair(sub, sub_obj, false);
 
-  ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex,
-                   tao_mon,
-                   this->subscribers_protector_,
-                   DDS::Subscriber::_nil());
+  ACE_Guard< ACE_Recursive_Thread_Mutex > tao_mon (this->subscribers_protector_);
+  if (tao_mon.locked () != 0) { ;; }
+  else { 
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::create_subscriber\t%d\n", DDS::Subscriber::_nil());
+    fclose(fp);
+    return DDS::Subscriber::_nil();
+  }
 
   if (OpenDDS::DCPS::insert(subscribers_, pair) == -1) {
     if (DCPS_debug_level > 0) {
@@ -364,8 +400,13 @@ DomainParticipantImpl::delete_subscriber(
   const Subscriber_Pair sub_pair(the_servant, s, true);
 
   {
-    ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex, g,
-      subscribers_protector_, DDS::RETCODE_ERROR);
+    ACE_Guard< ACE_Recursive_Thread_Mutex > g (subscribers_protector_);
+    if (g.locked () != 0) { ;; } else { 
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DomainParticipantImpl::delete_subscriber\t%d\n", DDS::RETCODE_ERROR);
+      fclose(fp);
+      return DDS::RETCODE_ERROR;
+    }
     if (subscribers_.count(sub_pair) == 0) {
       if (log_level >= LogLevel::Notice) {
         ACE_ERROR((LM_NOTICE, "(%P|%t) NOTICE: DomainParticipantImpl::delete_subscriber: "
@@ -404,8 +445,13 @@ DomainParticipantImpl::delete_subscriber(
   }
 
   {
-    ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex, g,
-      subscribers_protector_, DDS::RETCODE_ERROR);
+    ACE_Guard< ACE_Recursive_Thread_Mutex > g (subscribers_protector_);
+    if (g.locked () != 0) { ;; } else { 
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DomainParticipantImpl::delete_subscriber\t%d\n", DDS::RETCODE_ERROR);
+      fclose(fp);
+      return DDS::RETCODE_ERROR;
+    }
     if (remove(subscribers_, sub_pair) == -1) {
       if (log_level >= LogLevel::Notice) {
         ACE_ERROR((LM_NOTICE, "(%P|%t) NOTICE: DomainParticipantImpl::delete_subscriber: "
@@ -858,10 +904,14 @@ DomainParticipantImpl::find_topic(
 DDS::TopicDescription_ptr
 DomainParticipantImpl::lookup_topicdescription(const char* name)
 {
-  ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex,
-                   tao_mon,
-                   this->topics_protector_,
-                   DDS::Topic::_nil());
+  ACE_Guard< ACE_Recursive_Thread_Mutex > tao_mon (this->topics_protector_);
+  if (tao_mon.locked () != 0) { ;; }
+  else { 
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::lookup_topicdescription\t%d\n", DDS::Topic::_nil());
+    fclose(fp);
+    return DDS::Topic::_nil();
+  }
 
   TopicMap::mapped_type* entry = 0;
 
@@ -963,8 +1013,13 @@ DomainParticipantImpl::create_contentfilteredtopic(
 DDS::ReturnCode_t DomainParticipantImpl::delete_contentfilteredtopic(
   DDS::ContentFilteredTopic_ptr a_contentfilteredtopic)
 {
-  ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex, guard, topics_protector_,
-                   DDS::RETCODE_OUT_OF_RESOURCES);
+  ACE_Guard< ACE_Recursive_Thread_Mutex > guard (topics_protector_);
+  if (guard.locked () != 0) { ;; } else {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::delete_contentfilteredtopic\t%d\n", DDS::RETCODE_ERROR);
+    fclose(fp);
+    return DDS::RETCODE_OUT_OF_RESOURCES;
+  }
   DDS::ContentFilteredTopic_var cft =
     DDS::ContentFilteredTopic::_duplicate(a_contentfilteredtopic);
   CORBA::String_var name = cft->get_name();
@@ -1027,8 +1082,13 @@ DDS::MultiTopic_ptr DomainParticipantImpl::create_multitopic(
   const char* subscription_expression,
   const DDS::StringSeq& expression_parameters)
 {
-  ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex, guard, topics_protector_, 0);
-
+  ACE_Guard< ACE_Recursive_Thread_Mutex > guard (topics_protector_);
+  if (guard.locked () != 0) { ;; } else {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::create_multitopic\t%d\n", 0);
+    fclose(fp);
+    return 0;
+  }
   if (topics_.count(name)) {
     if (DCPS_debug_level > 3) {
       ACE_ERROR((LM_ERROR, ACE_TEXT("(%P|%t) ERROR: ")
@@ -1084,8 +1144,13 @@ DDS::MultiTopic_ptr DomainParticipantImpl::create_multitopic(
 DDS::ReturnCode_t DomainParticipantImpl::delete_multitopic(
   DDS::MultiTopic_ptr a_multitopic)
 {
-  ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex, guard, topics_protector_,
-                   DDS::RETCODE_OUT_OF_RESOURCES);
+  ACE_Guard< ACE_Recursive_Thread_Mutex > guard (topics_protector_);
+  if (guard.locked () != 0) { ;; } else {
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::delete_multitopic\t%d\n", DDS::RETCODE_ERROR);
+    fclose(fp);
+    return DDS::RETCODE_OUT_OF_RESOURCES;
+  }
   DDS::MultiTopic_var mt = DDS::MultiTopic::_duplicate(a_multitopic);
   CORBA::String_var mt_name = mt->get_name();
   TopicDescriptionMap::iterator iter = topic_descrs_.find(mt_name.in());
@@ -1241,10 +1306,14 @@ DomainParticipantImpl::contains_entity(DDS::InstanceHandle_t a_handle)
   /// Check top-level containers for Topic, Subscriber,
   /// and Publisher instances.
   {
-    ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex,
-                     guard,
-                     this->topics_protector_,
-                     false);
+    ACE_Guard< ACE_Recursive_Thread_Mutex > guard (this->topics_protector_);
+    if (guard.locked () != 0) { ;; }
+    else { 
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DomainParticipantImpl::contains_entity\t%d\n", false);
+      fclose(fp);
+      return false;
+    }
 
     for (TopicMap::iterator it(topics_.begin());
          it != topics_.end(); ++it) {
@@ -1258,11 +1327,14 @@ DomainParticipantImpl::contains_entity(DDS::InstanceHandle_t a_handle)
   }
 
   {
-    ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex,
-                     guard,
-                     this->subscribers_protector_,
-                     false);
-
+    ACE_Guard< ACE_Recursive_Thread_Mutex > guard (this->subscribers_protector_);
+    if (guard.locked () != 0) { ;; }
+    else { 
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DomainParticipantImpl::contains_entity\t%d\n", false);
+      fclose(fp);
+      return false;
+    }
     for (SubscriberSet::iterator it(subscribers_.begin());
          it != subscribers_.end(); ++it) {
       if (a_handle == it->svt_->get_instance_handle()) {
@@ -1275,10 +1347,14 @@ DomainParticipantImpl::contains_entity(DDS::InstanceHandle_t a_handle)
   }
 
   {
-    ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex,
-                     guard,
-                     this->publishers_protector_,
-                     false);
+    ACE_Guard< ACE_Recursive_Thread_Mutex > guard (this->publishers_protector_);
+    if (guard.locked () != 0) { ;; }
+    else { 
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DomainParticipantImpl::contains_entity\t%d\n", false);
+      fclose(fp);
+      return false;
+    }
 
     for (PublisherSet::iterator it(publishers_.begin());
          it != publishers_.end(); ++it) {
@@ -1644,10 +1720,14 @@ DomainParticipantImpl::assert_liveliness()
   // support the AUTOMATIC liveliness qos for datawriter.
   // Add implementation here.
 
-  ACE_GUARD_RETURN(ACE_Recursive_Thread_Mutex,
-                   tao_mon,
-                   this->publishers_protector_,
-                   DDS::RETCODE_ERROR);
+  ACE_Guard< ACE_Recursive_Thread_Mutex > tao_mon (this->publishers_protector_);
+  if (tao_mon.locked () != 0) { ;; }
+  else { 
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::assert_liveliness\t%d\n", DDS::RETCODE_ERROR);
+    fclose(fp);
+    return DDS::RETCODE_ERROR;
+  }
 
   for (PublisherSet::iterator it(publishers_.begin());
        it != publishers_.end(); ++it) {
@@ -1766,7 +1846,14 @@ DomainParticipantImpl::get_current_time(DDS::Time_t& current_time)
 DDS::ReturnCode_t
 DomainParticipantImpl::get_discovered_participants(DDS::InstanceHandleSeq& participant_handles)
 {
-  ACE_GUARD_RETURN(ACE_Thread_Mutex, guard, handle_protector_, DDS::RETCODE_ERROR);
+  ACE_Guard< ACE_Thread_Mutex > guard (handle_protector_);
+  if (guard.locked () != 0) { ;; }
+  else { 
+    FILE *fp = fopen("/tmp/opendds-debug", "a+");
+    fprintf(fp, "DomainParticipantImpl::get_discovered_participants\t%d\n", DDS::RETCODE_ERROR);
+    fclose(fp);
+    return DDS::RETCODE_ERROR;
+  }
 
   const CountedHandleMap::const_iterator itEnd = handles_.end();
   for (CountedHandleMap::const_iterator iter = handles_.begin(); iter != itEnd; ++iter) {
@@ -1792,7 +1879,14 @@ DomainParticipantImpl::get_discovered_participant_data(DDS::ParticipantBuiltinTo
                                                        DDS::InstanceHandle_t participant_handle)
 {
   {
-    ACE_GUARD_RETURN(ACE_Thread_Mutex, guard, handle_protector_, DDS::RETCODE_ERROR);
+    ACE_Guard< ACE_Thread_Mutex > guard (handle_protector_);
+    if (guard.locked () != 0) { ;; }
+    else {
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "DomainParticipantImpl::get_discovered_participant_data\t%d\n", DDS::RETCODE_ERROR);
+      fclose(fp);
+      return DDS::RETCODE_ERROR;
+    }
 
     bool found = false;
     const CountedHandleMap::const_iterator itEnd = handles_.end();
