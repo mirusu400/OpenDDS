@@ -935,11 +935,11 @@ DDS::DomainParticipant_ptr
 PublisherImpl::get_participant()
 {
   // NOTE::: Pointer in stack memory?
-  DDS::DomainParticipant_var participant_var = participant_.lock()._retn();
+  DDS::DomainParticipant_ptr participant_var = participant_.lock()._retn();
   FILE *fp = fopen("/tmp/opendds-debug", "a+");
   fprintf(fp, "PublisherImpl::get_participant\t%d\n", participant_var);
   fclose(fp);
-  return participant_var;
+  return participant_var
 }
 
 DDS::ReturnCode_t
