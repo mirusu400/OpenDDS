@@ -6,7 +6,7 @@
 /ACE_TAO/
 *.tar.gz
 *.zip
-
+install/
 # gnuace
 .depend.*
 GNUmakefile*
