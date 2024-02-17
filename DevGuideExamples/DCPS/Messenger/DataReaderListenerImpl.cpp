@@ -45,8 +45,8 @@ DataReaderListenerImpl::on_liveliness_changed(
 void
 DataReaderListenerImpl::on_data_available(DDS::DataReader_ptr reader)
 {
-  Messenger::MessageDataReader_var reader_i =
-    Messenger::MessageDataReader::_narrow(reader);
+  Messenger::HelloWorldDataReader_var reader_i =
+    Messenger::HelloWorldDataReader::_narrow(reader);
 
   if (!reader_i) {
     ACE_ERROR((LM_ERROR,
@@ -55,7 +55,7 @@ DataReaderListenerImpl::on_data_available(DDS::DataReader_ptr reader)
     ACE_OS::exit(1);
   }
 
-  Messenger::Message message;
+  Messenger::HelloWorld message;
   DDS::SampleInfo info;
 
   const DDS::ReturnCode_t error = reader_i->take_next_sample(message, info);
@@ -65,11 +65,8 @@ DataReaderListenerImpl::on_data_available(DDS::DataReader_ptr reader)
     std::cout << "SampleInfo.instance_state = " << OpenDDS::DCPS::InstanceState::instance_state_mask_string(info.instance_state) << std::endl;
 
     if (info.valid_data) {
-      std::cout << "Message: subject    = " << message.subject.in() << std::endl
-                << "         subject_id = " << message.subject_id   << std::endl
-                << "         from       = " << message.from.in()    << std::endl
-                << "         count      = " << message.count        << std::endl
-                << "         text       = " << message.text.in()    << std::endl;
+      std::cout << "Message: index    = " << message.index << std::endl
+                << "         message  = " << message.message.in() << std::endl;
 
     }
 

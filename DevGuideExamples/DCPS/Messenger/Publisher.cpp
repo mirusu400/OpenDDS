@@ -41,8 +41,8 @@ int ACE_TMAIN(int argc, ACE_TCHAR* argv[])
     }
 
     // Register TypeSupport (Messenger::Message)
-    Messenger::MessageTypeSupport_var ts =
-      new Messenger::MessageTypeSupportImpl;
+    Messenger::HelloWorldTypeSupport_var ts =
+      new Messenger::HelloWorldTypeSupportImpl;
 
     if (ts->register_type(participant, "") != DDS::RETCODE_OK) {
       ACE_ERROR_RETURN((LM_ERROR,
@@ -51,10 +51,10 @@ int ACE_TMAIN(int argc, ACE_TCHAR* argv[])
                        1);
     }
 
-    // Create Topic (Movie Discussion List)
+    // Create Topic (HelloWorld)
     CORBA::String_var type_name = ts->get_type_name();
     DDS::Topic_var topic =
-      participant->create_topic("Movie Discussion List",
+      participant->create_topic("HelloWorld",
                                 type_name,
                                 TOPIC_QOS_DEFAULT,
                                 0,
@@ -94,8 +94,8 @@ int ACE_TMAIN(int argc, ACE_TCHAR* argv[])
                        1);
     }
 
-    Messenger::MessageDataWriter_var message_writer =
-      Messenger::MessageDataWriter::_narrow(writer);
+    Messenger::HelloWorldDataWriter_var message_writer =
+      Messenger::HelloWorldDataWriter::_narrow(writer);
 
     if (!message_writer) {
       ACE_ERROR_RETURN((LM_ERROR,
@@ -143,18 +143,14 @@ int ACE_TMAIN(int argc, ACE_TCHAR* argv[])
     ws->detach_condition(condition);
 
     // Write samples
-    Messenger::Message message;
-    message.subject_id = 99;
+    Messenger::HelloWorld message;
+    message.index = 0;
 
-    message.from       = "Comic Book Guy";
-    message.subject    = "Review";
-    message.text       = "Worst. Movie. Ever.";
-    message.count      = 0;
+    message.message = "HelloWorld";
 
     for (int i = 0; i < 10; ++i) {
       DDS::ReturnCode_t error = message_writer->write(message, DDS::HANDLE_NIL);
-      ++message.count;
-      ++message.subject_id;
+      ++message.index;
 
       if (error != DDS::RETCODE_OK) {
         ACE_ERROR((LM_ERROR,

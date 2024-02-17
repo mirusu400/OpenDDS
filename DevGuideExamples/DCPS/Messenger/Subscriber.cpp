@@ -42,8 +42,8 @@ int ACE_TMAIN(int argc, ACE_TCHAR* argv[])
     }
 
     // Register Type (Messenger::Message)
-    Messenger::MessageTypeSupport_var ts =
-      new Messenger::MessageTypeSupportImpl;
+    Messenger::HelloWorldTypeSupport_var ts =
+      new Messenger::HelloWorldTypeSupportImpl;
 
     if (ts->register_type(participant, "") != DDS::RETCODE_OK) {
       ACE_ERROR_RETURN((LM_ERROR,
@@ -52,10 +52,10 @@ int ACE_TMAIN(int argc, ACE_TCHAR* argv[])
                        1);
     }
 
-    // Create Topic (Movie Discussion List)
+    // Create Topic (HelloWorld)
     CORBA::String_var type_name = ts->get_type_name();
     DDS::Topic_var topic =
-      participant->create_topic("Movie Discussion List",
+      participant->create_topic("HelloWorld",
                                 type_name,
                                 TOPIC_QOS_DEFAULT,
                                 0,
@@ -101,8 +101,8 @@ int ACE_TMAIN(int argc, ACE_TCHAR* argv[])
                        1);
     }
 
-    Messenger::MessageDataReader_var reader_i =
-      Messenger::MessageDataReader::_narrow(reader);
+    Messenger::HelloWorldDataReader_var reader_i =
+      Messenger::HelloWorldDataReader::_narrow(reader);
 
     if (!reader_i) {
       ACE_ERROR_RETURN((LM_ERROR,
