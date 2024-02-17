@@ -45,8 +45,8 @@ DataReaderListenerImpl::on_liveliness_changed(
 void
 DataReaderListenerImpl::on_data_available(DDS::DataReader_ptr reader)
 {
-  Messenger::HelloWorldDataReader_var reader_i =
-    Messenger::HelloWorldDataReader::_narrow(reader);
+  HelloWorldDataReader_var reader_i =
+    HelloWorldDataReader::_narrow(reader);
 
   if (!reader_i) {
     ACE_ERROR((LM_ERROR,
@@ -55,7 +55,7 @@ DataReaderListenerImpl::on_data_available(DDS::DataReader_ptr reader)
     ACE_OS::exit(1);
   }
 
-  Messenger::HelloWorld message;
+  HelloWorld message;
   DDS::SampleInfo info;
 
   const DDS::ReturnCode_t error = reader_i->take_next_sample(message, info);

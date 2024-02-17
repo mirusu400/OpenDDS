@@ -42,8 +42,8 @@ int ACE_TMAIN(int argc, ACE_TCHAR* argv[])
     }
 
     // Register Type (Messenger::Message)
-    Messenger::HelloWorldTypeSupport_var ts =
-      new Messenger::HelloWorldTypeSupportImpl;
+    HelloWorldTypeSupport_var ts =
+      new HelloWorldTypeSupportImpl;
 
     if (ts->register_type(participant, "") != DDS::RETCODE_OK) {
       ACE_ERROR_RETURN((LM_ERROR,
@@ -101,8 +101,8 @@ int ACE_TMAIN(int argc, ACE_TCHAR* argv[])
                        1);
     }
 
-    Messenger::HelloWorldDataReader_var reader_i =
-      Messenger::HelloWorldDataReader::_narrow(reader);
+    HelloWorldDataReader_var reader_i =
+      HelloWorldDataReader::_narrow(reader);
 
     if (!reader_i) {
       ACE_ERROR_RETURN((LM_ERROR,

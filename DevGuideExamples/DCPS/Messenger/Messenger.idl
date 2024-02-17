@@ -17,11 +17,10 @@ module Messenger {
 
  */
 
-module Messenger {
 
   @topic
   struct HelloWorld {
     @key unsigned long index;
 	  string message;
   };
-};
+
