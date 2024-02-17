@@ -18,9 +18,9 @@ module Messenger {
  */
 
 
-  @topic
-  struct HelloWorld {
-    @key unsigned long index;
-	  string message;
-  };
+@topic
+struct HelloWorld {
+  unsigned long index;
+  string message;
+};
 
