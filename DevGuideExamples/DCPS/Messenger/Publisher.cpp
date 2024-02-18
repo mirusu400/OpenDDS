@@ -141,14 +141,14 @@ int ACE_TMAIN(int argc, ACE_TCHAR* argv[])
                ACE_TEXT("Subscriber is available\n")));
 
     ws->detach_condition(condition);
-
+    // exit(0);
     // Write samples
     HelloWorld message;
     message.index = 0;
 
     message.message = "HelloWorld";
 
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 1; ++i) {
       DDS::ReturnCode_t error = message_writer->write(message, DDS::HANDLE_NIL);
       ++message.index;
 
