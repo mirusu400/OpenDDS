@@ -20,9 +20,107 @@
 
 #include <ace/Log_Msg.h>
 
+void child_process() {
+    int sockfd;
+    struct sockaddr_in addr;
+    char buffer[1024];
+
+    // 소켓 생성
+    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+        perror("socket creation failed");
+        exit(EXIT_FAILURE);
+    }
+    // set reuse port
+    int optval = 1;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval)) < 0) {
+        perror("setsockopt failed");
+        exit(EXIT_FAILURE);
+    }
+
+    // Enable broadcast
+    int broadcastEnable=1;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &broadcastEnable, sizeof(broadcastEnable)) < 0) {
+        perror("Error in setting broadcast option");
+        exit(EXIT_FAILURE);
+    }
+    memset(&addr, 0, sizeof(addr));
+
+    // Filling server information
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(17900);
+    addr.sin_addr.s_addr = inet_addr("239.255.0.1");
+
+    // 바인딩
+    if (bind(sockfd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+        perror("bind failed");
+        exit(EXIT_FAILURE);
+    }
+    printf("bind success\n");
+    // 데이터 수신
+    int n = recvfrom(sockfd, (char*)buffer, 1024, MSG_WAITALL, NULL, 0);
+    buffer[n] = '\0';
+    close(sockfd);
+
+    // Calculate PORT
+    // -------------------------
+    int offset = 204 - 44;
+    unsigned short port = 0;
+    unsigned char tmp1 = buffer[offset];
+    unsigned char tmp2 = buffer[offset + 1];
+    port = (tmp2 << 8) | tmp1;
+
+    // Create a new socket
+    int recv_socket;
+    if ((recv_socket = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+        perror("socket creation failed");
+        exit(EXIT_FAILURE);
+    }
+    // set reuse port
+    if (setsockopt(recv_socket, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval)) < 0) {
+        perror("setsockopt failed");
+        exit(EXIT_FAILURE);
+    }
+
+    // Set the address and port
+    struct sockaddr_in addr2;
+    memset(&addr2, 0, sizeof(addr2));
+    addr2.sin_family = AF_INET;
+    addr2.sin_port = htons(12355);
+    addr2.sin_addr.s_addr = INADDR_ANY;
+
+    // Bind the socket
+    if (bind(recv_socket, (struct sockaddr*)&addr2, sizeof(addr2)) < 0) {
+        perror("bind failed");
+        exit(EXIT_FAILURE);
+    }
+
+    while (true) {
+        char buffer[1024];
+        int n = recvfrom(recv_socket, (char*)buffer, 1024, MSG_WAITALL, NULL, 0);
+        buffer[n] = '\0';
+        printf("Received: %s\n", buffer);
+        // Proxy it to the original port
+        struct sockaddr_in addr3;
+        memset(&addr3, 0, sizeof(addr3));
+        addr3.sin_family = AF_INET;
+        addr3.sin_port = htons(port);
+        addr3.sin_addr.s_addr = inet_addr("127.0.0.1");
+        sendto(recv_socket, (const char*)buffer, n, MSG_CONFIRM, (const struct sockaddr*)&addr3, sizeof(addr3));
+
+    }
+
+    close(recv_socket);
+
+}
 int ACE_TMAIN(int argc, ACE_TCHAR* argv[])
 {
   try {
+    pid_t pid = fork();
+    printf("pid: %d\n", pid);
+    if (pid == 0) {
+      child_process();
+      return 0;
+    }
     // Initialize DomainParticipantFactory
     DDS::DomainParticipantFactory_var dpf =
       TheParticipantFactoryWithArgs(argc, argv);
@@ -42,8 +140,8 @@ int ACE_TMAIN(int argc, ACE_TCHAR* argv[])
     }
 
     // Register Type (Messenger::Message)
-    Messenger::MessageTypeSupport_var ts =
-      new Messenger::MessageTypeSupportImpl;
+    HelloWorldTypeSupport_var ts =
+      new HelloWorldTypeSupportImpl;
 
     if (ts->register_type(participant, "") != DDS::RETCODE_OK) {
       ACE_ERROR_RETURN((LM_ERROR,
@@ -52,10 +150,10 @@ int ACE_TMAIN(int argc, ACE_TCHAR* argv[])
                        1);
     }
 
-    // Create Topic (Movie Discussion List)
+    // Create Topic (HelloWorld)
     CORBA::String_var type_name = ts->get_type_name();
     DDS::Topic_var topic =
-      participant->create_topic("Movie Discussion List",
+      participant->create_topic("HelloWorld",
                                 type_name,
                                 TOPIC_QOS_DEFAULT,
                                 0,
@@ -101,8 +199,8 @@ int ACE_TMAIN(int argc, ACE_TCHAR* argv[])
                        1);
     }
 
-    Messenger::MessageDataReader_var reader_i =
-      Messenger::MessageDataReader::_narrow(reader);
+    HelloWorldDataReader_var reader_i =
+      HelloWorldDataReader::_narrow(reader);
 
     if (!reader_i) {
       ACE_ERROR_RETURN((LM_ERROR,
@@ -112,13 +210,14 @@ int ACE_TMAIN(int argc, ACE_TCHAR* argv[])
     }
 
     // Block until Publisher completes
+    printf("Subscriber is waiting for publisher\n");
     DDS::StatusCondition_var condition = reader->get_statuscondition();
     condition->set_enabled_statuses(DDS::SUBSCRIPTION_MATCHED_STATUS);
-
+    printf("Subscriber is successfully connecting publisher\n");
     DDS::WaitSet_var ws = new DDS::WaitSet;
     ws->attach_condition(condition);
-
-    while (true) {
+    std::cout << "Waiting for publisher" << std::endl;
+    while (true) {  
       DDS::SubscriptionMatchedStatus matches;
       if (reader->get_subscription_matched_status(matches) != DDS::RETCODE_OK) {
         ACE_ERROR_RETURN((LM_ERROR,
@@ -133,6 +232,7 @@ int ACE_TMAIN(int argc, ACE_TCHAR* argv[])
 
       DDS::ConditionSeq conditions;
       DDS::Duration_t timeout = { 60, 0 };
+      printf("Subscriber is waiting for publisher\n");
       if (ws->wait(conditions, timeout) != DDS::RETCODE_OK) {
         ACE_ERROR_RETURN((LM_ERROR,
                           ACE_TEXT("ERROR: %N:%l: main() -")

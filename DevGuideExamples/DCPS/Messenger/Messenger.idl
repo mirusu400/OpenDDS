@@ -1,7 +1,7 @@
 /*
  * Distributed under the OpenDDS License.
  * See: http://www.opendds.org/license.html
- */
+
 
 module Messenger {
 
@@ -14,3 +14,13 @@ module Messenger {
     long count;
   };
 };
+
+ */
+
+
+@topic
+struct HelloWorld {
+  unsigned long index;
+  string message;
+};
+

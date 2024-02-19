@@ -20,6 +20,10 @@ add_library(messenger_idl)
 opendds_target_sources(messenger_idl PUBLIC "Messenger.idl")
 target_link_libraries(messenger_idl PUBLIC OpenDDS::Dcps)
 
+# add -pg option
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pg")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
+
 set(opendds_libs
   OpenDDS::Dcps # Core OpenDDS Library
   OpenDDS::InfoRepoDiscovery OpenDDS::Tcp # For run_test.pl
