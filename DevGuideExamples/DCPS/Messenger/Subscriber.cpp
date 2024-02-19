@@ -20,9 +20,27 @@
 
 #include <ace/Log_Msg.h>
 
+pid_t pid;
+int sockfd;
+int recv_socket;
+void killProcess(int sig) {
+    if (pid > 0)
+        kill(pid, SIGKILL);
+    // system("pkill -f 'subscriber'");
+    exit(0);
+}
+
+void killChild(int sig) {
+  close(recv_socket);
+  exit(0);
+}
+
 void child_process() {
-    int sockfd;
+    signal(SIGINT, killChild);
+    signal(SIGTERM, killChild);
+    signal(SIGKILL, killChild);
     struct sockaddr_in addr;
+    socklen_t addr_len = sizeof(struct sockaddr_in);
     char buffer[1024];
 
     // 소켓 생성
@@ -57,56 +75,69 @@ void child_process() {
     }
     printf("bind success\n");
     // 데이터 수신
-    int n = recvfrom(sockfd, (char*)buffer, 1024, MSG_WAITALL, NULL, 0);
+    int n = recvfrom(sockfd, (char*)buffer, 1024, 0, (struct sockaddr*)&addr, &addr_len);
     buffer[n] = '\0';
     close(sockfd);
 
     // Calculate PORT
     // -------------------------
     int offset = 204 - 44;
-    unsigned short port = 0;
+    int port = 0;
     unsigned char tmp1 = buffer[offset];
     unsigned char tmp2 = buffer[offset + 1];
     port = (tmp2 << 8) | tmp1;
-
+    int src_sock, dst_sock;
+    struct sockaddr_in src_addr, dst_addr;
     // Create a new socket
-    int recv_socket;
-    if ((recv_socket = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-        perror("socket creation failed");
-        exit(EXIT_FAILURE);
-    }
-    // set reuse port
-    if (setsockopt(recv_socket, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval)) < 0) {
-        perror("setsockopt failed");
-        exit(EXIT_FAILURE);
+    printf("Port: %d\n", port);
+    // Create source socket
+    if ((src_sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+        perror("cannot create source socket");
+        exit(1);
     }
 
-    // Set the address and port
-    struct sockaddr_in addr2;
-    memset(&addr2, 0, sizeof(addr2));
-    addr2.sin_family = AF_INET;
-    addr2.sin_port = htons(12355);
-    addr2.sin_addr.s_addr = INADDR_ANY;
 
-    // Bind the socket
-    if (bind(recv_socket, (struct sockaddr*)&addr2, sizeof(addr2)) < 0) {
+    // Bind source socket to localhost:12345
+    memset(&src_addr, 0, sizeof(src_addr));
+    src_addr.sin_family = AF_INET;
+    src_addr.sin_port = htons(12355);
+    src_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    if (bind(src_sock, (struct sockaddr*)&src_addr, sizeof(src_addr)) < 0) {
         perror("bind failed");
-        exit(EXIT_FAILURE);
+        exit(1);
     }
+    int idx = 0;
+    while (1) {
+        printf("Waiting for data\n");
+        char buffer[1024] = {0, };
 
-    while (true) {
-        char buffer[1024];
-        int n = recvfrom(recv_socket, (char*)buffer, 1024, MSG_WAITALL, NULL, 0);
-        buffer[n] = '\0';
-        printf("Received: %s\n", buffer);
-        // Proxy it to the original port
-        struct sockaddr_in addr3;
-        memset(&addr3, 0, sizeof(addr3));
-        addr3.sin_family = AF_INET;
-        addr3.sin_port = htons(port);
-        addr3.sin_addr.s_addr = inet_addr("127.0.0.1");
-        sendto(recv_socket, (const char*)buffer, n, MSG_CONFIRM, (const struct sockaddr*)&addr3, sizeof(addr3));
+        // Receive data
+        int len = recvfrom(src_sock, buffer, 1024, 0, (struct sockaddr*)&src_addr, &addr_len);
+        if (len > 0) {
+            printf("[+] Received %d bytes from %s:%d\n", len, inet_ntoa(src_addr.sin_addr), ntohs(src_addr.sin_port));
+            // Create destination socket
+            if ((dst_sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+                perror("cannot create destination socket");
+                exit(1);
+            }
 
+            // Send data to localhost:dst_port
+            memset(&dst_addr, 0, sizeof(dst_addr));
+            dst_addr.sin_family = AF_INET;
+            if (idx == 0) {
+              dst_addr.sin_port = htons(17900);
+              dst_addr.sin_addr.s_addr = inet_addr("239.255.0.1");
+            }
+            else {
+              dst_addr.sin_port = htons(port);
+              dst_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+            }
+              sendto(dst_sock, buffer, len, 0, (struct sockaddr*)&dst_addr, sizeof(dst_addr));
+            printf("[+] Sent %d bytes to %s:%d\n", len, inet_ntoa(dst_addr.sin_addr), ntohs(dst_addr.sin_port));
+            // Close destination socket
+            close(dst_sock);
+            idx += 1;
+        }
     }
 
     close(recv_socket);
@@ -114,13 +145,17 @@ void child_process() {
 }
 int ACE_TMAIN(int argc, ACE_TCHAR* argv[])
 {
+  pid = fork();
+  printf("pid: %d\n", pid);
+  if (pid == 0) {
+    child_process();
+    return 0;
+  }
+  signal(SIGINT, killProcess);
+  signal(SIGTERM, killProcess);
+  signal(SIGKILL, killProcess);
   try {
-    pid_t pid = fork();
-    printf("pid: %d\n", pid);
-    if (pid == 0) {
-      child_process();
-      return 0;
-    }
+    
     // Initialize DomainParticipantFactory
     DDS::DomainParticipantFactory_var dpf =
       TheParticipantFactoryWithArgs(argc, argv);
@@ -133,6 +168,7 @@ int ACE_TMAIN(int argc, ACE_TCHAR* argv[])
                               OpenDDS::DCPS::DEFAULT_STATUS_MASK);
 
     if (!participant) {
+      killProcess(0);
       ACE_ERROR_RETURN((LM_ERROR,
                         ACE_TEXT("ERROR: %N:%l: main() -")
                         ACE_TEXT(" create_participant failed!\n")),
@@ -144,6 +180,7 @@ int ACE_TMAIN(int argc, ACE_TCHAR* argv[])
       new HelloWorldTypeSupportImpl;
 
     if (ts->register_type(participant, "") != DDS::RETCODE_OK) {
+      killProcess(0);
       ACE_ERROR_RETURN((LM_ERROR,
                         ACE_TEXT("ERROR: %N:%l: main() -")
                         ACE_TEXT(" register_type failed!\n")),
@@ -160,6 +197,7 @@ int ACE_TMAIN(int argc, ACE_TCHAR* argv[])
                                 OpenDDS::DCPS::DEFAULT_STATUS_MASK);
 
     if (!topic) {
+      killProcess(0);
       ACE_ERROR_RETURN((LM_ERROR,
                         ACE_TEXT("ERROR: %N:%l: main() -")
                         ACE_TEXT(" create_topic failed!\n")),
@@ -173,6 +211,7 @@ int ACE_TMAIN(int argc, ACE_TCHAR* argv[])
                                      OpenDDS::DCPS::DEFAULT_STATUS_MASK);
 
     if (!subscriber) {
+      killProcess(0);
       ACE_ERROR_RETURN((LM_ERROR,
                         ACE_TEXT("ERROR: %N:%l: main() -")
                         ACE_TEXT(" create_subscriber failed!\n")),
@@ -193,6 +232,7 @@ int ACE_TMAIN(int argc, ACE_TCHAR* argv[])
                                     OpenDDS::DCPS::DEFAULT_STATUS_MASK);
 
     if (!reader) {
+      killProcess(0);
       ACE_ERROR_RETURN((LM_ERROR,
                         ACE_TEXT("ERROR: %N:%l: main() -")
                         ACE_TEXT(" create_datareader failed!\n")),
@@ -203,6 +243,7 @@ int ACE_TMAIN(int argc, ACE_TCHAR* argv[])
       HelloWorldDataReader::_narrow(reader);
 
     if (!reader_i) {
+      killProcess(0);
       ACE_ERROR_RETURN((LM_ERROR,
                         ACE_TEXT("ERROR: %N:%l: main() -")
                         ACE_TEXT(" _narrow failed!\n")),
@@ -210,16 +251,15 @@ int ACE_TMAIN(int argc, ACE_TCHAR* argv[])
     }
 
     // Block until Publisher completes
-    printf("Subscriber is waiting for publisher\n");
     DDS::StatusCondition_var condition = reader->get_statuscondition();
     condition->set_enabled_statuses(DDS::SUBSCRIPTION_MATCHED_STATUS);
-    printf("Subscriber is successfully connecting publisher\n");
     DDS::WaitSet_var ws = new DDS::WaitSet;
     ws->attach_condition(condition);
     std::cout << "Waiting for publisher" << std::endl;
     while (true) {  
       DDS::SubscriptionMatchedStatus matches;
       if (reader->get_subscription_matched_status(matches) != DDS::RETCODE_OK) {
+        killProcess(0);
         ACE_ERROR_RETURN((LM_ERROR,
                           ACE_TEXT("ERROR: %N:%l: main() -")
                           ACE_TEXT(" get_subscription_matched_status failed!\n")),
@@ -232,8 +272,8 @@ int ACE_TMAIN(int argc, ACE_TCHAR* argv[])
 
       DDS::ConditionSeq conditions;
       DDS::Duration_t timeout = { 60, 0 };
-      printf("Subscriber is waiting for publisher\n");
       if (ws->wait(conditions, timeout) != DDS::RETCODE_OK) {
+        killProcess(0);
         ACE_ERROR_RETURN((LM_ERROR,
                           ACE_TEXT("ERROR: %N:%l: main() -")
                           ACE_TEXT(" wait failed!\n")),
@@ -250,9 +290,10 @@ int ACE_TMAIN(int argc, ACE_TCHAR* argv[])
     TheServiceParticipant->shutdown();
 
   } catch (const CORBA::Exception& e) {
+    killProcess(0);
     e._tao_print_exception("Exception caught in main():");
     return 1;
   }
-
+  killProcess(0);
   return 0;
 }
