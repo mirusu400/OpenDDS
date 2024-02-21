@@ -289,6 +289,9 @@ SubscriberImpl::create_datareader(
                   ACE_TEXT("SubscriberImpl::create_datareader, ")
                   ACE_TEXT("enable failed.\n")));
       }
+      FILE *fp = fopen("/tmp/opendds-debug", "a+");
+      fprintf(fp, "SubscriberImpl::create_datareader\t%d\n", DDS::DataReader::_nil());
+      fclose(fp);
       return DDS::DataReader::_nil();
     }
   } else {
@@ -298,6 +301,9 @@ SubscriberImpl::create_datareader(
 
   // add created data reader to this' data reader container -
   // done in enable_reader
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "SubscriberImpl::create_datareader\t%d\n", dr_obj.in());
+  fclose(fp);
   return DDS::DataReader::_duplicate(dr_obj.in());
 }
 
