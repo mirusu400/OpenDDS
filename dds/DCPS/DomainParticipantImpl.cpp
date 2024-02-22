@@ -504,7 +504,7 @@ DomainParticipantImpl::create_topic(
                                       mask,
                                       0);
   FILE *fp = fopen("/tmp/opendds-debug", "a+");
-  fprintf(fp, "DomainParticipantImpl::create_topic\t%d\n", ptr);
+  fprintf(fp, "DomainParticipantImpl::create_topic\t%s\n", ptr->get_name());
   fclose(fp);
   return ptr;
 }
@@ -2367,6 +2367,7 @@ DomainParticipantImpl::create_new_topic(
 
   // the topics_ map has one reference and we duplicate to give
   // the caller another reference.
+
   return DDS::Topic::_duplicate(refCounted_topic.pair_.obj_.in());
 }
 

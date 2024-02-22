@@ -102,6 +102,11 @@ DomainParticipantFactoryImpl::create_participant(
 
   participants_[domainId].insert(dp);
   DDS::DomainParticipant_ptr dp_ptr = dp._retn();
+
+  FILE *fp = fopen("/tmp/opendds-debug", "a+");
+  fprintf(fp, "DomainParticipantFactoryImpl::create_participant\t%d\n", dp_ptr);
+  fclose(fp);
+
   return dp_ptr;
 }
 
