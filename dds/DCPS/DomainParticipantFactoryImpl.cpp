@@ -59,7 +59,7 @@ DomainParticipantFactoryImpl::create_participant(
                 ACE_TEXT("invalid qos.\n")));
     }
     FILE *fp = fopen("/tmp/opendds-debug", "a+");
-    fprintf(fp, "DomainParticipantFactoryImpl::create_participant\t%d\n", DDS::DomainParticipant::_nil());
+    fprintf(fp, "DomainParticipantFactoryImpl::create_participant\t%p\n", DDS::DomainParticipant::_nil());
     fclose(fp);
     return DDS::DomainParticipant::_nil();
   }
@@ -72,7 +72,7 @@ DomainParticipantFactoryImpl::create_participant(
                 ACE_TEXT("inconsistent qos.\n")));
     }
     FILE *fp = fopen("/tmp/opendds-debug", "a+");
-    fprintf(fp, "DomainParticipantFactoryImpl::create_participant\t%d\n", DDS::DomainParticipant::_nil());
+    fprintf(fp, "DomainParticipantFactoryImpl::create_participant\t%p\n", DDS::DomainParticipant::_nil());
     fclose(fp);
     return DDS::DomainParticipant::_nil();
   }
@@ -89,7 +89,7 @@ DomainParticipantFactoryImpl::create_participant(
                   ACE_TEXT("unable to enable DomainParticipant.\n")));
       }
       FILE *fp = fopen("/tmp/opendds-debug", "a+");
-      fprintf(fp, "DomainParticipantFactoryImpl::create_participant\t%d\n", DDS::DomainParticipant::_nil());
+      fprintf(fp, "DomainParticipantFactoryImpl::create_participant\t%p\n", DDS::DomainParticipant::_nil());
       fclose(fp);
       return DDS::DomainParticipant::_nil();
     }
@@ -104,7 +104,7 @@ DomainParticipantFactoryImpl::create_participant(
   DDS::DomainParticipant_ptr dp_ptr = dp._retn();
 
   FILE *fp = fopen("/tmp/opendds-debug", "a+");
-  fprintf(fp, "DomainParticipantFactoryImpl::create_participant\t%d\n", dp_ptr);
+  fprintf(fp, "DomainParticipantFactoryImpl::create_participant\t%p\n", dp_ptr);
   fclose(fp);
 
   return dp_ptr;
@@ -278,7 +278,7 @@ DomainParticipantFactoryImpl::lookup_participant(
     // NOTE::: ptr but in stack?
     DDS::DomainParticipant_ptr dp = DDS::DomainParticipant::_duplicate(entry->begin()->in());
     FILE *fp = fopen("/tmp/opendds-debug", "a+");
-    fprintf(fp, "DomainParticipantFactoryImpl::lookup_participant\t%d\n", dp);
+    fprintf(fp, "DomainParticipantFactoryImpl::lookup_participant\t%p\n", dp);
     fclose(fp);
     return dp;
   }
@@ -319,7 +319,7 @@ DDS::DomainParticipantFactory_ptr
 DomainParticipantFactoryImpl::get_instance()
 {
   FILE *fp = fopen("/tmp/opendds-debug", "a+");
-  fprintf(fp, "DomainParticipantFactoryImpl::get_instance\t%d\n", TheParticipantFactory);
+  fprintf(fp, "DomainParticipantFactoryImpl::get_instance\t%p\n", TheParticipantFactory);
   fclose(fp);
   return TheParticipantFactory;
 }

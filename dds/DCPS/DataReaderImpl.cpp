@@ -772,7 +772,7 @@ DDS::ReadCondition_ptr DataReaderImpl::create_readcondition(
   
   DDS::ReadCondition_ptr ret = rc._retn();
   FILE *fp = fopen("/tmp/opendds-debug", "a+");
-  fprintf(fp, "DataReaderImpl::create_readcondition\t%d\n", ret);
+  fprintf(fp, "DataReaderImpl::create_readcondition\t%p\n", ret);
   fclose(fp);
   return 0;
 }
@@ -805,7 +805,7 @@ DDS::QueryCondition_ptr DataReaderImpl::create_querycondition(
     read_conditions_.insert(rc);
     DDS::QueryCondition_ptr ptr = qc._retn();
     FILE *fp = fopen("/tmp/opendds-debug", "a+");
-    fprintf(fp, "DataReaderImpl::create_querycondition\t%d\n", ptr);
+    fprintf(fp, "DataReaderImpl::create_querycondition\t%p\n", ptr);
     fclose(fp);
     return ptr;
   } catch (const std::exception& e) {
@@ -980,7 +980,7 @@ DDS::TopicDescription_ptr DataReaderImpl::get_topicdescription()
     if (content_filtered_topic_) {
       DDS::TopicDescription_ptr tdesc = DDS::TopicDescription::_duplicate(content_filtered_topic_.get());
       FILE *fp = fopen("/tmp/opendds-debug", "a+");
-      fprintf(fp, "DataReaderImpl::get_topicdescription\t%d\n", tdesc);
+      fprintf(fp, "DataReaderImpl::get_topicdescription\t%p\n", tdesc);
       fclose(fp);
       return tdesc;
     }
@@ -988,7 +988,7 @@ DDS::TopicDescription_ptr DataReaderImpl::get_topicdescription()
 #endif
   DDS::TopicDescription_ptr tdesc = DDS::TopicDescription::_duplicate(topic_desc_.in());
   FILE *fp = fopen("/tmp/opendds-debug", "a+");
-  fprintf(fp, "DataReaderImpl::get_topicdescription\t%d\n", tdesc);
+  fprintf(fp, "DataReaderImpl::get_topicdescription\t%p\n", tdesc);
   fclose(fp);
   return tdesc;
 }
@@ -997,7 +997,7 @@ DDS::Subscriber_ptr DataReaderImpl::get_subscriber()
 {
   DDS::Subscriber_ptr ptr = get_subscriber_servant()._retn();
   FILE *fp = fopen("/tmp/opendds-debug", "a+");
-  fprintf(fp, "DataReaderImpl::get_subscriber\t%d\n", ptr);
+  fprintf(fp, "DataReaderImpl::get_subscriber\t%p\n", ptr);
   fclose(fp);
   return ptr;
 }

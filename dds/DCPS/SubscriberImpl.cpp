@@ -574,7 +574,7 @@ SubscriberImpl::lookup_datareader(
     if (mt_iter != multitopic_reader_map_.end()) {
       DDS::DataReader_ptr ptr = DDS::DataReader::_duplicate(mt_iter->second);
       FILE *fp = fopen("/tmp/opendds-debug", "a+");
-      fprintf(fp, "SubscriberImpl::lookup_datareader\t%d\n", ptr);
+      fprintf(fp, "SubscriberImpl::lookup_datareader\t%p\n", ptr);
       fclose(fp);
       return ptr;
     }
@@ -588,14 +588,14 @@ SubscriberImpl::lookup_datareader(
                  topic_name));
     }
     FILE *fp = fopen("/tmp/opendds-debug", "a+");
-    fprintf(fp, "SubscriberImpl::lookup_datareader\t%d\n", DDS::DataReader::_nil());
+    fprintf(fp, "SubscriberImpl::lookup_datareader\t%p\n", DDS::DataReader::_nil());
     fclose(fp);
     return DDS::DataReader::_nil();
 
   } else {
     DDS::DataReader_ptr ptr = DDS::DataReader::_duplicate(it->second.in());
     FILE *fp = fopen("/tmp/opendds-debug", "a+");
-    fprintf(fp, "SubscriberImpl::lookup_datareader\t%d\n", ptr);
+    fprintf(fp, "SubscriberImpl::lookup_datareader\t%p\n", ptr);
     fclose(fp);
     return ptr;
   }
@@ -980,7 +980,7 @@ SubscriberImpl::get_participant()
 {
   DDS::DomainParticipant_ptr ptr = participant_.lock()._retn();
   FILE *fp = fopen("/tmp/opendds-debug", "a+");
-  fprintf(fp, "SubscriberImpl::get_participant\t%d\n", ptr);
+  fprintf(fp, "SubscriberImpl::get_participant\t%p\n", ptr);
   fclose(fp);
   return ptr;
 }

@@ -165,7 +165,7 @@ PublisherImpl::create_datawriter(
           name.in()));
     }
     FILE *fp = fopen("/tmp/opendds-debug", "a+");
-    fprintf(fp, "PublisherImpl::create_datawriter\t%d\n", DDS::DataWriter::_nil());
+    fprintf(fp, "PublisherImpl::create_datawriter\t%p\n", DDS::DataWriter::_nil());
     fclose(fp);
     return DDS::DataWriter::_nil();
   }
@@ -183,7 +183,7 @@ PublisherImpl::create_datawriter(
           ACE_TEXT("servant is nil.\n")));
     }
     FILE *fp = fopen("/tmp/opendds-debug", "a+");
-    fprintf(fp, "PublisherImpl::create_datawriter\t%d\n", DDS::DataWriter::_nil());
+    fprintf(fp, "PublisherImpl::create_datawriter\t%p\n", DDS::DataWriter::_nil());
     fclose(fp);
     return DDS::DataWriter::_nil();
   }
@@ -207,7 +207,7 @@ PublisherImpl::create_datawriter(
             ACE_TEXT("enable failed.\n")));
       }
       FILE *fp = fopen("/tmp/opendds-debug", "a+");
-      fprintf(fp, "PublisherImpl::create_datawriter\t%d\n", DDS::DataWriter::_nil());
+      fprintf(fp, "PublisherImpl::create_datawriter\t%p\n", DDS::DataWriter::_nil());
       fclose(fp);
       return DDS::DataWriter::_nil();
     }
@@ -217,7 +217,7 @@ PublisherImpl::create_datawriter(
   }
   DDS::DataWriter_ptr retval = DDS::DataWriter::_duplicate(dw_obj.in());
   FILE *fp = fopen("/tmp/opendds-debug", "a+");
-  fprintf(fp, "PublisherImpl::create_datawriter\t%d\n", retval);
+  fprintf(fp, "PublisherImpl::create_datawriter\t%p\n", retval);
   fclose(fp);
 
   return retval;
@@ -391,7 +391,7 @@ PublisherImpl::lookup_datawriter(const char* topic_name)
   } else {
     DDS::DataWriter_ptr writer = DDS::DataWriter::_duplicate(it->second.in());
     FILE *fp = fopen("/tmp/opendds-debug", "a+");
-    fprintf(fp, "PublisherImpl::lookup_datawriter\t%d\n", writer);
+    fprintf(fp, "PublisherImpl::lookup_datawriter\t%p\n", writer);
     return writer;
   }
 }
@@ -937,7 +937,7 @@ PublisherImpl::get_participant()
   // NOTE::: Pointer in stack memory?
   DDS::DomainParticipant_ptr participant_var = participant_.lock()._retn();
   FILE *fp = fopen("/tmp/opendds-debug", "a+");
-  fprintf(fp, "PublisherImpl::get_participant\t%d\n", participant_var);
+  fprintf(fp, "PublisherImpl::get_participant\t%p\n", participant_var);
   fclose(fp);
   return participant_var;
 }

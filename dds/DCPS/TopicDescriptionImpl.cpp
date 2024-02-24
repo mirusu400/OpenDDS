@@ -56,7 +56,7 @@ TopicDescriptionImpl::get_participant()
 {
   DDS::DomainParticipant_ptr participant = DDS::DomainParticipant::_duplicate(participant_);
   FILE *fp = fopen("/tmp/opendds-debug", "a+");
-  fprintf(fp, "TopicDescriptionImpl::get_participant\t%d\n", participant);
+  fprintf(fp, "TopicDescriptionImpl::get_participant\t%p\n", participant);
   fclose(fp);
   return participant;
 }

@@ -58,7 +58,7 @@ DDS::Entity_ptr StatusConditionImpl::get_entity()
   // NOTE::: Return Stack-based object reference?
   DDS::Entity_ptr entity = DDS::Entity::_duplicate(parent_);
   FILE *fp = fopen("/tmp/opendds-debug", "a+");
-  fprintf(fp, "StatusConditionImpl::get_entity\t%d\n", entity);
+  fprintf(fp, "StatusConditionImpl::get_entity\t%p\n", entity);
   fclose(fp);
   return entity;
 }

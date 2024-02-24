@@ -1020,7 +1020,7 @@ DataWriterImpl::get_topic()
 
   DDS::Topic_ptr topic = DDS::Topic::_duplicate(topic_servant_.get());
   FILE *fp = fopen("/tmp/opendds-debug", "a+");
-  fprintf(fp, "DataWriterImpl::get_topic\t%d\n", topic);
+  fprintf(fp, "DataWriterImpl::get_topic\t%p\n", topic);
   fclose(fp);
   return topic;
 }
@@ -1142,7 +1142,7 @@ DataWriterImpl::get_publisher()
 {
   DDS::Publisher_ptr pub = publisher_servant_.lock()._retn();
   FILE *fp = fopen("/tmp/opendds-debug", "a+");
-  fprintf(fp, "DataWriterImpl::get_publisher\t%d\n", pub);
+  fprintf(fp, "DataWriterImpl::get_publisher\t%p\n", pub);
   fclose(fp);
   return pub;
 }
@@ -1744,7 +1744,7 @@ DataWriterImpl::register_instance_i(DDS::InstanceHandle_t& handle,
                      ret);
   }
   FILE *fp = fopen("/tmp/opendds-debug", "a+");
-  fprintf(fp, "DataWriterImpl::register_instance_i\t%d\n");
+  fprintf(fp, "DataWriterImpl::register_instance_i\t%d\n", ret);
   fclose(fp);
   return ret;
 }
@@ -1798,7 +1798,7 @@ DataWriterImpl::unregister_instance_i(DDS::InstanceHandle_t handle,
   if (this->qos_.writer_data_lifecycle.autodispose_unregistered_instances) {
     DDS::ReturnCode_t ret = this->dispose_and_unregister(handle, samp, source_timestamp);
     FILE *fp = fopen("/tmp/opendds-debug", "a+");
-    fprintf(fp, "DataWriterImpl::unregister_instance_i\t%d\n");
+    fprintf(fp, "DataWriterImpl::unregister_instance_i\t%d\n", ret);
     fclose(fp);
     return ret;
   }

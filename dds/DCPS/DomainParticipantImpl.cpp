@@ -159,7 +159,7 @@ DomainParticipantImpl::create_publisher(
 
   if (! this->validate_publisher_qos(pub_qos)) {
     FILE *fp = fopen("/tmp/opendds-debug", "a+");
-    fprintf(fp, "DomainParticipantImpl::create_publisher\t%d\n", DDS::Publisher::_nil());
+    fprintf(fp, "DomainParticipantImpl::create_publisher\t%p\n", DDS::Publisher::_nil());
     fclose(fp);
     return DDS::Publisher::_nil();
   }
@@ -175,7 +175,7 @@ DomainParticipantImpl::create_publisher(
     if (pub == 0) {
       (*__errno_location ()) = 12;
       FILE *fp = fopen("/tmp/opendds-debug", "a+");
-      fprintf(fp, "DomainParticipantImpl::create_publisher\t%d\n", DDS::Publisher::_nil());
+      fprintf(fp, "DomainParticipantImpl::create_publisher\t%p\n", DDS::Publisher::_nil());
       fclose(fp);
       return DDS::Publisher::_nil(); }
     } 
@@ -194,7 +194,7 @@ DomainParticipantImpl::create_publisher(
   ACE_Guard< ACE_Recursive_Thread_Mutex > tao_mon (this->publishers_protector_);
   if (tao_mon.locked () != 0) { ;; } else {
     FILE *fp = fopen("/tmp/opendds-debug", "a+");
-    fprintf(fp, "DomainParticipantImpl::create_publisher\t%d\n", DDS::Publisher::_nil());
+    fprintf(fp, "DomainParticipantImpl::create_publisher\t%p\n", DDS::Publisher::_nil());
     fclose(fp); 
     return DDS::Publisher::_nil();
   }
@@ -207,7 +207,7 @@ DomainParticipantImpl::create_publisher(
                  ACE_TEXT("insert")));
     }
     FILE *fp = fopen("/tmp/opendds-debug", "a+");
-    fprintf(fp, "DomainParticipantImpl::create_publisher\t%d\n", DDS::Publisher::_nil());
+    fprintf(fp, "DomainParticipantImpl::create_publisher\t%p\n", DDS::Publisher::_nil());
     fclose(fp);
 
     return DDS::Publisher::_nil();
@@ -215,7 +215,7 @@ DomainParticipantImpl::create_publisher(
 
   DDS::Publisher_ptr ptr = DDS::Publisher::_duplicate(pub_obj);
   FILE *fp = fopen("/tmp/opendds-debug", "a+");
-  fprintf(fp, "DomainParticipantImpl::create_publisher\t%d\n", ptr);
+  fprintf(fp, "DomainParticipantImpl::create_publisher\t%p\n", ptr);
   fclose(fp);
   return ptr;
 }
@@ -323,7 +323,7 @@ DomainParticipantImpl::create_subscriber(
 
   if (! this->validate_subscriber_qos(sub_qos)) {
     FILE *fp = fopen("/tmp/opendds-debug", "a+");
-    fprintf(fp, "DomainParticipantImpl::create_subscriber\t%d\n", DDS::Subscriber::_nil());
+    fprintf(fp, "DomainParticipantImpl::create_subscriber\t%p\n", DDS::Subscriber::_nil());
     fclose(fp);
     return DDS::Subscriber::_nil();
   }
@@ -336,7 +336,7 @@ DomainParticipantImpl::create_subscriber(
     if (sub == 0) {
       (*__errno_location ()) = 12;
       FILE *fp = fopen("/tmp/opendds-debug", "a+");
-      fprintf(fp, "DomainParticipantImpl::create_subscriber\t%d\n", DDS::Subscriber::_nil());
+      fprintf(fp, "DomainParticipantImpl::create_subscriber\t%p\n", DDS::Subscriber::_nil());
       fclose(fp);
       return DDS::Subscriber::_nil();
     }
@@ -354,7 +354,7 @@ DomainParticipantImpl::create_subscriber(
   if (tao_mon.locked () != 0) { ;; }
   else { 
     FILE *fp = fopen("/tmp/opendds-debug", "a+");
-    fprintf(fp, "DomainParticipantImpl::create_subscriber\t%d\n", DDS::Subscriber::_nil());
+    fprintf(fp, "DomainParticipantImpl::create_subscriber\t%p\n", DDS::Subscriber::_nil());
     fclose(fp);
     return DDS::Subscriber::_nil();
   }
@@ -367,13 +367,13 @@ DomainParticipantImpl::create_subscriber(
                  ACE_TEXT("insert")));
     }
     FILE *fp = fopen("/tmp/opendds-debug", "a+");
-    fprintf(fp, "DomainParticipantImpl::create_subscriber\t%d\n", DDS::Subscriber::_nil());
+    fprintf(fp, "DomainParticipantImpl::create_subscriber\t%p\n", DDS::Subscriber::_nil());
     fclose(fp);
     return DDS::Subscriber::_nil();
   }
   DDS::Subscriber_ptr ptr = DDS::Subscriber::_duplicate(sub_obj);
   FILE *fp = fopen("/tmp/opendds-debug", "a+");
-  fprintf(fp, "DomainParticipantImpl::create_subscriber\t%d\n", ptr);
+  fprintf(fp, "DomainParticipantImpl::create_subscriber\t%p\n", ptr);
   fclose(fp);
   return ptr;
 }
@@ -476,7 +476,7 @@ DomainParticipantImpl::get_builtin_subscriber()
   // NOTE::: Ptr but stack???
   DDS::Subscriber_ptr builtin_subscriber = bit_subscriber_->get();
   FILE *fp = fopen("/tmp/opendds-debug", "a+");
-  fprintf(fp, "DomainParticipantImpl::get_builtin_subscriber\t%d\n", builtin_subscriber);
+  fprintf(fp, "DomainParticipantImpl::get_builtin_subscriber\t%p\n", builtin_subscriber);
   fclose(fp);
 
   return builtin_subscriber;
@@ -850,7 +850,7 @@ DomainParticipantImpl::find_topic(
                        ACE_TEXT("is not registered.\n"), type_name.in()));
         }
         FILE *fp = fopen("/tmp/opendds-debug", "a+");
-        fprintf(fp, "DomainParticipantImpl::find_topic\t%d\n", DDS::Topic::_nil());
+        fprintf(fp, "DomainParticipantImpl::find_topic\t%p\n", DDS::Topic::_nil());
         fclose(fp);
         return DDS::Topic::_nil();
       }
@@ -862,7 +862,7 @@ DomainParticipantImpl::find_topic(
                                                   OpenDDS::DCPS::DEFAULT_STATUS_MASK,
                                                   type_support);
       FILE *fp = fopen("/tmp/opendds-debug", "a+");
-      fprintf(fp, "DomainParticipantImpl::find_topic\t%d\n", new_topic);
+      fprintf(fp, "DomainParticipantImpl::find_topic\t%p\n", new_topic);
       fclose(fp);
       return new_topic;
 
@@ -873,7 +873,7 @@ DomainParticipantImpl::find_topic(
                    ACE_TEXT("topic not found, discovery returned INTERNAL_ERROR!\n")));
       }
       FILE *fp = fopen("/tmp/opendds-debug", "a+");
-      fprintf(fp, "DomainParticipantImpl::find_topic\t%d\n", DDS::Topic::_nil());
+      fprintf(fp, "DomainParticipantImpl::find_topic\t%p\n", DDS::Topic::_nil());
       fclose(fp);
       return DDS::Topic::_nil();
     } else if (now < timeout_at) {
@@ -895,7 +895,7 @@ DomainParticipantImpl::find_topic(
                ACE_TEXT("timed out.\n")));
   }
   FILE *fp = fopen("/tmp/opendds-debug", "a+");
-  fprintf(fp, "DomainParticipantImpl::find_topic\t%d\n", DDS::Topic::_nil());
+  fprintf(fp, "DomainParticipantImpl::find_topic\t%p\n", DDS::Topic::_nil());
   fclose(fp);
 
   return DDS::Topic::_nil();
@@ -908,7 +908,7 @@ DomainParticipantImpl::lookup_topicdescription(const char* name)
   if (tao_mon.locked () != 0) { ;; }
   else { 
     FILE *fp = fopen("/tmp/opendds-debug", "a+");
-    fprintf(fp, "DomainParticipantImpl::lookup_topicdescription\t%d\n", DDS::Topic::_nil());
+    fprintf(fp, "DomainParticipantImpl::lookup_topicdescription\t%p\n", DDS::Topic::_nil());
     fclose(fp);
     return DDS::Topic::_nil();
   }
@@ -922,20 +922,20 @@ DomainParticipantImpl::lookup_topicdescription(const char* name)
       // NOTE::: ptr but stack???
       DDS::TopicDescription_ptr td = DDS::TopicDescription::_duplicate(iter->second);
       FILE *fp = fopen("/tmp/opendds-debug", "a+");
-      fprintf(fp, "DomainParticipantImpl::lookup_topicdescription\t%d\n", td);
+      fprintf(fp, "DomainParticipantImpl::lookup_topicdescription\t%p\n", td);
       fclose(fp);
       return td;
     }
 #endif
     FILE *fp = fopen("/tmp/opendds-debug", "a+");
-    fprintf(fp, "DomainParticipantImpl::lookup_topicdescription\t%d\n", DDS::Topic::_nil());
+    fprintf(fp, "DomainParticipantImpl::lookup_topicdescription\t%p\n", DDS::Topic::_nil());
     fclose(fp);
     return DDS::TopicDescription::_nil();
 
   } else {
     DDS::TopicDescription_ptr td = DDS::TopicDescription::_duplicate(entry->pair_.obj_.in());
     FILE *fp = fopen("/tmp/opendds-debug", "a+");
-    fprintf(fp, "DomainParticipantImpl::lookup_topicdescription\t%d\n", td);
+    fprintf(fp, "DomainParticipantImpl::lookup_topicdescription\t%p\n", td);
     fclose(fp);
     return td;
   }
@@ -1136,7 +1136,7 @@ DDS::MultiTopic_ptr DomainParticipantImpl::create_multitopic(
   // NOTE::: ptr but stack???
   DDS::MultiTopic_ptr ptr = mt._retn();
   FILE *fp = fopen("/tmp/opendds-debug", "a+");
-  fprintf(fp, "DomainParticipantImpl::create_multitopic\t%d\n", ptr);
+  fprintf(fp, "DomainParticipantImpl::create_multitopic\t%p\n", ptr);
   fclose(fp);
   return ptr;
 }
