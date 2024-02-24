@@ -139,7 +139,7 @@ SubscriberImpl::create_datareader(
   RcHandle<DomainParticipantImpl> participant = this->participant_.lock();
   if (!participant) {
     FILE *fp = fopen("/tmp/opendds-debug", "a+");
-    fprintf(fp, "SubscriberImpl::create_datareader\t%d\n", DDS::DataReader::_nil());
+    fprintf(fp, "SubscriberImpl::create_datareader\t%p\n", DDS::DataReader::_nil());
     fclose(fp);
     return DDS::DataReader::_nil();
   }
@@ -174,7 +174,7 @@ SubscriberImpl::create_datareader(
 
   if (!validate_datareader_qos (qos, default_datareader_qos_, topic_servant, dr_qos, mt)) {
     FILE *fp = fopen("/tmp/opendds-debug", "a+");
-    fprintf(fp, "SubscriberImpl::create_datareader\t%d\n", DDS::DataReader::_nil());
+    fprintf(fp, "SubscriberImpl::create_datareader\t%p\n", DDS::DataReader::_nil());
     fclose(fp);
     return DDS::DataReader::_nil();
   }
@@ -196,7 +196,7 @@ SubscriberImpl::create_datareader(
                       ACE_TEXT("enable of MultiTopicDataReader failed.\n")));
           }
           FILE *fp = fopen("/tmp/opendds-debug", "a+");
-          fprintf(fp, "SubscriberImpl::create_datareader\t%d\n", DDS::DataReader::_nil());
+          fprintf(fp, "SubscriberImpl::create_datareader\t%p\n", DDS::DataReader::_nil());
           fclose(fp);
           return DDS::DataReader::_nil();
         }
@@ -204,7 +204,7 @@ SubscriberImpl::create_datareader(
       }
       DDS::DataReader_ptr dr_ptr = dr._retn();
       FILE *fp = fopen("/tmp/opendds-debug", "a+");
-      fprintf(fp, "SubscriberImpl::create_datareader\t%d\n", dr_ptr);
+      fprintf(fp, "SubscriberImpl::create_datareader\t%p\n", dr_ptr);
       fclose(fp);
       return dr_ptr;
     } catch (const std::exception& e) {
@@ -217,7 +217,7 @@ SubscriberImpl::create_datareader(
       }
     }
     FILE *fp = fopen("/tmp/opendds-debug", "a+");
-    fprintf(fp, "SubscriberImpl::create_datareader\t%d\n", DDS::DataReader::_nil());
+    fprintf(fp, "SubscriberImpl::create_datareader\t%p\n", DDS::DataReader::_nil());
     fclose(fp);
     return DDS::DataReader::_nil();
   }
@@ -236,7 +236,7 @@ SubscriberImpl::create_datareader(
                 name.in()));
     }
     FILE *fp = fopen("/tmp/opendds-debug", "a+");
-    fprintf(fp, "SubscriberImpl::create_datareader\t%d\n", DDS::DataReader::_nil());
+    fprintf(fp, "SubscriberImpl::create_datareader\t%p\n", DDS::DataReader::_nil());
     fclose(fp);
     return DDS::DataReader::_nil();
   }
@@ -254,7 +254,7 @@ SubscriberImpl::create_datareader(
           ACE_TEXT("servant is nil.\n")));
     }
     FILE *fp = fopen("/tmp/opendds-debug", "a+");
-    fprintf(fp, "SubscriberImpl::create_datareader\t%d\n", DDS::DataReader::_nil());
+    fprintf(fp, "SubscriberImpl::create_datareader\t%p\n", DDS::DataReader::_nil());
     fclose(fp);
     return DDS::DataReader::_nil();
   }
@@ -290,7 +290,7 @@ SubscriberImpl::create_datareader(
                   ACE_TEXT("enable failed.\n")));
       }
       FILE *fp = fopen("/tmp/opendds-debug", "a+");
-      fprintf(fp, "SubscriberImpl::create_datareader\t%d\n", DDS::DataReader::_nil());
+      fprintf(fp, "SubscriberImpl::create_datareader\t%p\n", DDS::DataReader::_nil());
       fclose(fp);
       return DDS::DataReader::_nil();
     }
@@ -302,7 +302,7 @@ SubscriberImpl::create_datareader(
   // add created data reader to this' data reader container -
   // done in enable_reader
   FILE *fp = fopen("/tmp/opendds-debug", "a+");
-  fprintf(fp, "SubscriberImpl::create_datareader\t%d\n", dr_obj.in());
+  fprintf(fp, "SubscriberImpl::create_datareader\t%p\n", dr_obj.in());
   fclose(fp);
   return DDS::DataReader::_duplicate(dr_obj.in());
 }
@@ -559,7 +559,7 @@ SubscriberImpl::lookup_datareader(
   if (guard.locked () != 0) { ;; }
   else { 
     FILE *fp = fopen("/tmp/opendds-debug", "a+");
-    fprintf(fp, "SubscriberImpl::lookup_datareader\t%d\n", DDS::DataReader::_nil());
+    fprintf(fp, "SubscriberImpl::lookup_datareader\t%p\n", DDS::DataReader::_nil());
     fclose(fp);
     return DDS::DataReader::_nil();
     }
