@@ -61,6 +61,7 @@ DomainParticipantFactoryImpl::create_participant(
     FILE *fp = fopen("/tmp/opendds-debug", "a+");
     fprintf(fp, "DomainParticipantFactoryImpl::create_participant\t%p\n", DDS::DomainParticipant::_nil());
     fclose(fp);
+    std::cout<<"debug1"<<std::endl;
     return DDS::DomainParticipant::_nil();
   }
 
@@ -74,6 +75,7 @@ DomainParticipantFactoryImpl::create_participant(
     FILE *fp = fopen("/tmp/opendds-debug", "a+");
     fprintf(fp, "DomainParticipantFactoryImpl::create_participant\t%p\n", DDS::DomainParticipant::_nil());
     fclose(fp);
+    std::cout<<"debug2"<<std::endl;
     return DDS::DomainParticipant::_nil();
   }
 
@@ -91,6 +93,7 @@ DomainParticipantFactoryImpl::create_participant(
       FILE *fp = fopen("/tmp/opendds-debug", "a+");
       fprintf(fp, "DomainParticipantFactoryImpl::create_participant\t%p\n", DDS::DomainParticipant::_nil());
       fclose(fp);
+      std::cout<<"debug3"<<std::endl;
       return DDS::DomainParticipant::_nil();
     }
   }
